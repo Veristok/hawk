@@ -1,0 +1,190 @@
+--         __           .__         ___.                        
+--   ____ |  | ______   |__| ______ \_ |__   ____  ______ ______
+-- _/ __ \|  |/ /  _ \  |  |/  ___/  | __ \ /  _ \/  ___//  ___/
+-- \  ___/|    <  <_> ) |  |\___ \   | \_\ (  <_> )___ \ \___ \ 
+--  \___  >__|_ \____/  |__/____  >  |___  /\____/____  >____  >
+--      \/     \/               \/       \/           \/     \/ 
+-- join the discord to dump scripts https://discord.gg/a5b4BXBPyY
+
+local v1 = game:GetService("Players")
+local v2 = v1.LocalPlayer
+local v3 = game:GetService("RunService")
+local v4 = game:GetService("Teams")
+for _, child in v4:GetChildren() do
+    local v5 = game:GetService("ReplicatedStorage")
+    local v6 = v1.LocalPlayer
+    local v7 = object:FindFirstChild("Humanoid")
+    local v8 = game:GetService("Players")
+    local v9 = v8.LocalPlayer
+    local v10 = v8.PlayerAdded:Connect(function(player)
+    end
+end)
+local v11 = game:GetService("Players")
+local v12 = game:GetService("RunService")
+local v13 = v11.LocalPlayer
+local v14 = workspace:WaitForChild("ItemSpawns")
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+local v15 = Rayfield:CreateWindow({
+    LoadingTitle = "Loading...",
+    LoadingSubtitle = "by mqixez",
+    ShowText = "menu",
+    Name = "SCPrBreach PAID (cracked by recogniz)",
+    Discord = {
+        Invite = "noinvitelink",
+        RememberJoins = true,
+        Enabled = false
+    },
+    Theme = "Default",
+    ConfigurationSaving = {
+        FileName = "SCPrBreach",
+        FolderName = "recognizcrack",
+        Enabled = true
+    },
+    KeySettings = {
+        Note = "No method of obtaining the key is provided",
+        GrabKeyFromSite = false,
+        FileName = "Key",
+        Subtitle = "Key System",
+        Key = {"Hello"},
+        SaveKey = true,
+        Title = "Untitled"
+    },
+    KeySystem = false,
+    DisableBuildWarnings = false,
+    DisableRayfieldPrompts = false,
+    ToggleUIKeybind = "K",
+    Icon = 0
+})
+local v16 = v15:CreateTab("Aimbot")
+local v17 = Drawing.new("Circle")
+v17.Visible = true
+v17.Filled = false
+v17.Color = Color3.fromRGB(255, 255, 255)
+v17.Thickness = 2
+v17.Transparency = 0
+v17.Radius = 100
+local v18 = v9:WaitForChild("PlayerGui")
+local v19 = Instance.new("ScreenGui")
+v19.Name = "FOVGui"
+v19.ResetOnSpawn = false
+v19.Parent = v18
+local v20 = Instance.new("Frame")
+v20.AnchorPoint = Vector2.new(0.5, 0.5)
+v20.Position = UDim2.fromScale(0.5, 0.5)
+v20.Size = UDim2.fromOffset(200, 200)
+v20.BackgroundTransparency = 1
+v20.Visible = false
+v20.Parent = v19
+local v21 = Instance.new("UICorner")
+v21.CornerRadius = UDim.new(1, 0)
+v21.Parent = v20
+local v22 = Instance.new("UIStroke")
+v22.Thickness = 2
+v22.Color = Color3.fromRGB(255, 255, 255)
+v22.Parent = v20
+local v23 = v15:CreateTab("Aimlock")
+local v24 = v23:CreateDropdown({
+    Callback = function(selected) end,
+    Name = "Ignore Team",
+    CurrentOption = {},
+    Options = {},
+    MultipleOptions = true
+})
+local v25 = v23:CreateDropdown({
+    Name = "Aim Part",
+    Callback = function(selected) end,
+    Options = {"Torso", "Head"},
+    CurrentOption = "Torso"
+})
+local v26 = v23:CreateToggle({
+    Name = "AimLock",
+    Callback = function(bI)
+        v20.Visible = true
+    end,
+    CurrentValue = false
+})
+local v27 = v23:CreateToggle({
+    Name = "WallCheck",
+    Callback = function(enabled) end,
+    CurrentValue = true
+})
+local v28 = v23:CreateSlider({
+    Callback = function(bI)
+        v20.Size = UDim2.fromOffset(100, 100)
+    end,
+    Range = {50, 400},
+    Name = "Fov Radius",
+    Suffix = "",
+    Increment = 5,
+    CurrentValue = 100
+})
+local v29 = v23:CreateSlider({
+    Callback = function(value) end,
+    Range = {1, 100},
+    Name = "Smoothness",
+    Suffix = "",
+    Increment = 1,
+    CurrentValue = 15
+})
+local v30 = v12.RenderStepped:Connect(function(deltaTime)
+    v20.Size = UDim2.fromOffset(100, 100)
+    local v31 = object:FindFirstChild("HumanoidRootPart")
+end)
+local v32 = v15:CreateTab("Client")
+local v33 = game:GetService("Players")
+local v34 = game:GetService("RunService")
+local v35 = v33.LocalPlayer
+    local v37 = v32:CreateToggle({
+        Name = "Noclip",
+        Callback = function(bI)
+            local v36 = v34.Stepped:Connect(function(time, deltaTime)
+            for _, obj in object:GetDescendants() do
+            end)
+        end,
+        Flag = "PhasePlayer",
+        CurrentValue = false
+    })
+    local v38 = v15:CreateTab("Render")
+    local v39 = v38:CreateSection("Items ESP")
+    local v44 = v38:CreateToggle({
+        Name = "Item ESP",
+        Callback = function(bI)
+            for _, child in v14:GetChildren() do
+            local v40 = v14.ChildAdded:Connect(function(child)
+            task.wait(0.05)
+            end
+            end)
+            local v41 = v14.ChildRemoved:Connect(function(child)
+            end)
+            local v42 = v12.RenderStepped:Connect(function(deltaTime)
+            local v43 = object:FindFirstChild("HumanoidRootPart")
+            end)
+        end,
+        Flag = "ItemESP",
+        CurrentValue = false
+    })
+    local v45 = v38:CreateSection("Player ESP")
+    local v46 = v38:CreateToggle({
+        Name = "Player ESP",
+        Callback = function(enabled) end,
+        Flag = "TeamESP",
+        CurrentValue = false
+    })
+    local v47 = v15:CreateTab("Misc")
+    local v48 = v47:CreateSection("About Script")
+    local v49 = v47:CreateParagraph({
+        Content = "
+• Updated to v1.70 
+• Fixed Item ESP 
+• Fixed Http error 
+• Removed Loader(temporarily)",
+        Title = "Changelog"
+    })
+    local v50 = v47:CreateParagraph({
+        Content = "by recogniz",
+        Title = "Cracked script:"
+    })
+    local v51 = v47:CreateParagraph({
+        Content = "N/A (Original script dc: gg/marnzhub",
+        Title = "Discord"
+    })
