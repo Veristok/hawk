@@ -6368,6 +6368,152 @@ function Library:CreateWindow(WindowInfo)
             Parent = Tabs,
         })
 
+                            --[[
+    Добавление панели профиля игрока в верхней части списка вкладок
+--]]
+
+-- Функция для загрузки аватарки игрока
+local function UpdatePlayerAvatar(ImageLabel)
+    local userId = LocalPlayer.UserId
+    if userId and userId > 0 then
+        local avatarUrl = string.format("https://www.roblox.com/headshot-thumbnail/image?userId=%d&width=100&height=100&format=png", userId)
+        ImageLabel.Image = avatarUrl
+    end
+end
+
+-- Создаем панель профиля (будет выглядеть как неактивная вкладка)
+local ProfileFrame = New("TextButton", {
+    Name = "PlayerProfile",
+    BackgroundColor3 = "MainColor",
+    BackgroundTransparency = 0,
+    Size = UDim2.new(1, 0, 0, 70),
+    Text = "",
+    Active = false,
+    AutoButtonColor = false,
+    Parent = Tabs,
+})
+
+-- Добавляем скругление углов
+New("UICorner", {
+    CornerRadius = UDim.new(0, WindowInfo.CornerRadius),
+    Parent = ProfileFrame,
+})
+
+-- Добавляем обводку
+Library:AddOutline(ProfileFrame)
+
+-- Контейнер для содержимого
+local ProfileContainer = New("Frame", {
+    BackgroundTransparency = 1,
+    Size = UDim2.new(1, 0, 1, 0),
+    Parent = ProfileFrame,
+})
+
+-- Горизонтальное расположение (аватар слева, текст справа)
+New("UIListLayout", {
+    FillDirection = Enum.FillDirection.Horizontal,
+    VerticalAlignment = Enum.VerticalAlignment.Center,
+    Padding = UDim.new(0, 12),
+    Parent = ProfileContainer,
+})
+
+-- Аватарка игрока
+local AvatarImage = New("ImageLabel", {
+    BackgroundColor3 = "BackgroundColor",
+    Size = UDim2.fromOffset(44, 44),
+    Image = "rbxasset://textures/ui/GuiImagePlaceholder.png",
+    ScaleType = Enum.ScaleType.Fit,
+    Parent = ProfileContainer,
+})
+New("UICorner", {
+    CornerRadius = UDim.new(1, 0),
+    Parent = AvatarImage,
+})
+Library:AddOutline(AvatarImage)
+
+-- Контейнер для текстовой информации
+local TextContainer = New("Frame", {
+    BackgroundTransparency = 1,
+    Size = UDim2.new(1, -56, 1, 0),
+    Parent = ProfileContainer,
+})
+
+-- Вертикальное расположение текста
+New("UIListLayout", {
+    FillDirection = Enum.FillDirection.Vertical,
+    VerticalAlignment = Enum.VerticalAlignment.Center,
+    Padding = UDim.new(0, 2),
+    Parent = TextContainer,
+})
+
+-- Имя игрока
+local PlayerNameLabel = New("TextLabel", {
+    BackgroundTransparency = 1,
+    Size = UDim2.new(1, 0, 0, 20),
+    Text = LocalPlayer.DisplayName or LocalPlayer.Name,
+    TextSize = 15,
+    TextColor3 = "FontColor",
+    TextXAlignment = Enum.TextXAlignment.Left,
+    TextTruncate = Enum.TextTruncate.AtEnd,
+    Parent = TextContainer,
+})
+
+-- Статус
+local StatusLabel = New("TextLabel", {
+    BackgroundTransparency = 1,
+    Size = UDim2.new(1, 0, 0, 16),
+    Text = "Loaded",
+    TextSize = 12,
+    TextColor3 = "TextSecondary",
+    TextXAlignment = Enum.TextXAlignment.Left,
+    Parent = TextContainer,
+})
+Library:AddToRegistry(StatusLabel, {
+    TextColor3 = "TextSecondary",
+})
+
+-- Загружаем аватарку
+UpdatePlayerAvatar(AvatarImage)
+
+-- Обновляем аватарку при появлении персонажа
+Library:GiveSignal(LocalPlayer.CharacterAdded:Connect(function()
+    UpdatePlayerAvatar(AvatarImage)
+end))
+
+-- Разделитель после панели профиля
+local ProfileSeparator = New("Frame", {
+    BackgroundColor3 = "OutlineColor",
+    Position = UDim2.fromOffset(0, 70),
+    Size = UDim2.new(1, 0, 0, 1),
+    Parent = Tabs,
+})
+
+-- Добавляем пустой элемент для отступа
+Library:AddBlank(Tabs, UDim2.fromOffset(0, 4))
+
+-- Функции для управления панелью
+function ProfileFrame:SetStatus(text, isError)
+    StatusLabel.Text = text or "Loaded"
+    if isError then
+        StatusLabel.TextColor3 = Library.Scheme.RedColor
+        Library:AddToRegistry(StatusLabel, { TextColor3 = "RedColor" })
+    else
+        StatusLabel.TextColor3 = Library.Scheme.TextSecondary
+        Library:AddToRegistry(StatusLabel, { TextColor3 = "TextSecondary" })
+    end
+end
+
+function ProfileFrame:SetName(name)
+    PlayerNameLabel.Text = name or LocalPlayer.DisplayName or LocalPlayer.Name
+end
+
+function ProfileFrame:RefreshAvatar()
+    UpdatePlayerAvatar(AvatarImage)
+end
+
+-- Сохраняем в объект окна
+Window.PlayerProfile = ProfileFrame
+
         --// Container \\--
         Container = New("Frame", {
             AnchorPoint = Vector2.new(1, 0),
