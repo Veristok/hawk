@@ -47,6 +47,10 @@ local ESP = {
 			Enabled = false,
 			RGB = Color3.fromRGB(255, 255, 255),
 		},
+		Health = {
+			Enabled = false,
+			RGB = Color3.fromRGB(255, 255, 255),
+		},
 		Boxes = {
 			Animate = false,
 			RotationSpeed = 300,
@@ -365,6 +369,21 @@ local function CreateESP(CharacterModel)
 		RichText = true,
 	})
 
+	local Health = Functions:Create("TextLabel", {
+		Parent = ESPFolder,
+		Name = "HealthLabel",
+		Position = UDim2.new(0.5, 0, 0, 0),
+		Size = UDim2.new(0, 60, 0, 20),
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		BackgroundTransparency = 1,
+		TextColor3 = Color3.fromRGB(255, 255, 255),
+		Font = Enum.Font.Code,
+		TextSize = ESP.FontSize,
+		TextStrokeTransparency = 0,
+		TextStrokeColor3 = Color3.fromRGB(0, 0, 0),
+		Text = "100%",
+	})
+
 	local Box = Functions:Create("Frame", {
 		Parent = ESPFolder,
 		Name = "Box",
@@ -408,7 +427,7 @@ local function CreateESP(CharacterModel)
 		DepthMode = "AlwaysOnTop",
 	})
 
-	local cornerThickness = ESP.Drawing.Boxes.Corner.Thickness
+local cornerThickness = ESP.Drawing.Boxes.Corner.Thickness
 	local cornerLength = ESP.Drawing.Boxes.Corner.Length
 	local cornerProps = {
 		Parent = ESPFolder,
@@ -457,6 +476,7 @@ local function CreateESP(CharacterModel)
 		Box.Visible = false
 		Name.Visible = false
 		Weapon.Visible = false
+		Health.Visible = false
 		LeftTopHorizontal.Visible = false
 		LeftTopVertical.Visible = false
 		RightTopHorizontal.Visible = false
@@ -522,6 +542,7 @@ local function CreateESP(CharacterModel)
 				Functions:FadeOutOnDist(Outline, Dist)
 				Functions:FadeOutOnDist(Name, Dist)
 				Functions:FadeOutOnDist(Weapon, Dist)
+				Functions:FadeOutOnDist(Health, Dist)
 				Functions:FadeOutOnDist(Chams, Dist)
 				Functions:FadeOutOnDist(LeftTopHorizontal, Dist)
 				Functions:FadeOutOnDist(LeftTopVertical, Dist)
@@ -596,19 +617,19 @@ local function CreateESP(CharacterModel)
 			Box.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2 + verticalOffset)
 			Box.Size = UDim2.new(0, w, 0, h)
 
-local full = ESP.Drawing.Boxes.Full.Enabled
-local corner = ESP.Drawing.Boxes.Corner.Enabled
-local filled = ESP.Drawing.Boxes.Filled.Enabled
+			local full = ESP.Drawing.Boxes.Full.Enabled
+			local corner = ESP.Drawing.Boxes.Corner.Enabled
+			local filled = ESP.Drawing.Boxes.Filled.Enabled
 
-Box.Visible = full or (corner and filled)
+			Box.Visible = full or (corner and filled)
 
-if filled then
-    Box.BackgroundTransparency = ESP.Drawing.Boxes.Filled.Transparency
-else
-    Box.BackgroundTransparency = 1 
-end
+			if filled then
+				Box.BackgroundTransparency = ESP.Drawing.Boxes.Filled.Transparency
+			else
+				Box.BackgroundTransparency = 1 
+			end
 
-Outline.Enabled = full and ESP.Drawing.Boxes.Gradient
+			Outline.Enabled = full and ESP.Drawing.Boxes.Gradient
 
 			local CurrentTick = tick()
 			local DeltaTime = CurrentTick - LastTick
@@ -645,6 +666,23 @@ Outline.Enabled = full and ESP.Drawing.Boxes.Gradient
 					Weapon.Position = UDim2.new(0, Pos.X, 0, Pos.Y + h / 2 + 9 + verticalOffset)
 				else
 					Weapon.Visible = false
+				end
+			end
+
+			-- Health ESP
+			Health.Visible = ESP.Drawing.Health.Enabled
+			if ESP.Drawing.Health.Enabled then
+				local humanoid = CharacterModel:FindFirstChild("Humanoid")
+				if humanoid then
+					local healthPercent = math.floor((humanoid.Health / humanoid.MaxHealth) * 100)
+					Health.Text = healthPercent .. "%"
+					
+					local r = math.floor(255 * (1 - (humanoid.Health / humanoid.MaxHealth)))
+					local g = math.floor(255 * (humanoid.Health / humanoid.MaxHealth))
+					Health.TextColor3 = Color3.fromRGB(r, g, 0)
+					Health.Position = UDim2.new(0, Pos.X, 0, Pos.Y - h / 2 - 9 - 15 + verticalOffset)
+				else
+					Health.Visible = false
 				end
 			end
 
@@ -774,6 +812,16 @@ end
 ESP.SetCornerLength = function(length)
 	if type(length) == "number" and length > 0 then
 		ESP.Drawing.Boxes.Corner.Length = length
+	end
+end
+
+ESP.ToggleHealth = function(enabled)
+	ESP.Drawing.Health.Enabled = enabled
+end
+
+ESP.SetHealthColor = function(color)
+	if typeof(color) == "Color3" then
+		ESP.Drawing.Health.RGB = color
 	end
 end
 
