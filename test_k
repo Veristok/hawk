@@ -516,7 +516,7 @@ local function CreateESP(CharacterModel)
 			return
 		end
 
-local torso = CharacterModel:FindFirstChild("torso")
+		local torso = CharacterModel:FindFirstChild("torso")
 		if not torso or torso.Transparency >= 1 then
 			HideESP()
 			return
@@ -539,7 +539,8 @@ local torso = CharacterModel:FindFirstChild("torso")
 
 			if ESP.FadeOut.OnDistance then
 				Functions:FadeOutOnDist(Box, Dist)
-				Functions:FadeOutOnDist(Outline, Dist)
+
+Functions:FadeOutOnDist(Outline, Dist)
 				Functions:FadeOutOnDist(Name, Dist)
 				Functions:FadeOutOnDist(Weapon, Dist)
 				Functions:FadeOutOnDist(Health, Dist)
@@ -669,13 +670,12 @@ local torso = CharacterModel:FindFirstChild("torso")
 				end
 			end
 
-			-- Health ESP
+			-- HEALTH ESP
 			if ESP.Drawing.Health.Enabled then
 				local humanoid = CharacterModel:FindFirstChild("Humanoid")
 				if humanoid then
 					local healthPercent = math.floor((humanoid.Health / humanoid.MaxHealth) * 100)
 					Health.Text = healthPercent .. "%"
-					
 					local r = math.floor(255 * (1 - (humanoid.Health / humanoid.MaxHealth)))
 					local g = math.floor(255 * (humanoid.Health / humanoid.MaxHealth))
 					Health.TextColor3 = Color3.fromRGB(r, g, 0)
