@@ -1,0 +1,224 @@
+-- deobfuscated blade ball
+
+local Workspace = game:GetService('Workspace')
+
+-- Пустые вызовы Color3 (оставлены как в оригинале)
+Color3.fromRGB(100, 100, 100)
+Color3.fromRGB(100, 100, 100)
+Color3.fromRGB(100, 100, 100)
+Color3.fromRGB(100, 100, 100)
+Color3.fromRGB(100, 100, 100)
+Color3.fromRGB(100, 100, 100)
+Color3.fromRGB(100, 100, 100)
+
+-- Подключения событий (оставлены как в оригинале)
+Workspace.ChildAdded:Connect(function() end)
+Workspace.ChildRemoved:Connect(function() end)
+Workspace.ChildAdded:Connect(function() end)
+Workspace.ChildRemoved:Connect(function() end)
+Workspace.ChildAdded:Connect(function() end)
+Workspace.ChildRemoved:Connect(function() end)
+Workspace.ChildAdded:Connect(function() end)
+Workspace.ChildRemoved:Connect(function() end)
+Workspace.ChildAdded:Connect(function() end)
+Workspace.ChildRemoved:Connect(function() end)
+Workspace.ChildAdded:Connect(function() end)
+Workspace.ChildRemoved:Connect(function() end)
+Workspace.ChildAdded:Connect(function() end)
+Workspace.ChildRemoved:Connect(function() end)
+
+-- Модуль Camera
+local Camera = setmetatable({
+    setColor = function(color)
+        -- функция установки цвета
+    end,
+    
+    setEnabled = function(enabled)
+        for _, child in ipairs(Workspace:GetChildren()) do
+            if child:IsA('Model') then
+                local folder = child:FindFirstChildWhichIsA('Folder')
+                if folder then
+                    local defaultCameras = folder:FindFirstChild('DefaultCameras')
+                    if defaultCameras then
+                        for _, cameraModel in ipairs(defaultCameras:GetChildren()) do
+                            if cameraModel:IsA('Model') then
+                                local pingObject = game:GetService('ReplicatedStorage').Modules.Effects.PingObject:Clone()
+                                pingObject.Parent = Workspace.CurrentCamera
+                                pingObject.Adornee = cameraModel
+                                pingObject.Enabled = true
+                                
+                                local frame = pingObject.Frame
+                                if frame then
+                                    frame.BackgroundColor3 = color
+                                    
+                                    local imageLabel = frame.ImageLabel
+                                    if imageLabel then
+                                        imageLabel.Image = 'rbxassetid://70956972762553'
+                                    end
+                                end
+                                
+                                local arrow = pingObject.Arrow
+                                if arrow then
+                                    arrow.ImageColor3 = color
+                                end
+                                
+                                pingObject:FindFirstChild('testname')
+                                pingObject.testname = cameraModel:FindFirstChild('Cam')
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end,
+    
+    getEnabled = function()
+        return enabled
+    end,
+    
+    getColor = function()
+        return color
+    end,
+}, {
+    __index = function() end,
+    __newindex = function(table, key, value)
+        rawset(table, key, value)
+    end,
+})
+
+-- Модуль StickyCamera
+local StickyCamera = setmetatable({
+    setColor = function(color) end,
+    setEnabled = function(enabled)
+        for _, child in ipairs(Workspace:GetChildren()) do
+            local name = child.Name
+        end
+    end,
+    getEnabled = function()
+        return enabled
+    end,
+    getColor = function()
+        return color
+    end,
+}, {
+    __index = function() end,
+    __newindex = function(table, key, value)
+        rawset(table, key, value)
+    end,
+})
+
+-- Модуль Drone
+local Drone = setmetatable({
+    setColor = function(color) end,
+    setEnabled = function(enabled)
+        for _, child in ipairs(Workspace:GetChildren()) do
+            local name = child.Name
+        end
+    end,
+    getEnabled = function()
+        return enabled
+    end,
+    getColor = function()
+        return color
+    end,
+}, {
+    __index = function() end,
+    __newindex = function(table, key, value)
+        rawset(table, key, value)
+    end,
+})
+
+-- Модуль Claymore
+local Claymore = setmetatable({
+    setColor = function(color) end,
+    setEnabled = function(enabled)
+        for _, child in ipairs(Workspace:GetChildren()) do
+            local name = child.Name
+        end
+    end,
+    getEnabled = function()
+        return enabled
+    end,
+    getColor = function()
+        return color
+    end,
+}, {
+    __index = function() end,
+    __newindex = function(table, key, value)
+        rawset(table, key, value)
+    end,
+})
+
+-- Модуль BreachCharge
+local BreachCharge = setmetatable({
+    setColor = function(color) end,
+    setEnabled = function(enabled)
+        for _, child in ipairs(Workspace:GetChildren()) do
+            local name = child.Name
+        end
+    end,
+    getEnabled = function()
+        return enabled
+    end,
+    getColor = function()
+        return color
+    end,
+}, {
+    __index = function() end,
+    __newindex = function(table, key, value)
+        rawset(table, key, value)
+    end,
+})
+
+-- Модуль RemoteC4
+local RemoteC4 = setmetatable({
+    setColor = function(color) end,
+    setEnabled = function(enabled)
+        for _, child in ipairs(Workspace:GetChildren()) do
+            local name = child.Name
+        end
+    end,
+    getEnabled = function()
+        return enabled
+    end,
+    getColor = function()
+        return color
+    end,
+}, {
+    __index = function() end,
+    __newindex = function(table, key, value)
+        rawset(table, key, value)
+    end,
+})
+
+-- Модуль ProximityAlarm
+local ProximityAlarm = setmetatable({
+    setColor = function(color) end,
+    setEnabled = function(enabled)
+        for _, child in ipairs(Workspace:GetChildren()) do
+            local name = child.Name
+        end
+    end,
+    getEnabled = function()
+        return enabled
+    end,
+    getColor = function()
+        return color
+    end,
+}, {
+    __index = function() end,
+    __newindex = function(table, key, value)
+        rawset(table, key, value)
+    end,
+})
+
+-- Возвращаем все модули
+return {
+    Camera = Camera,
+    StickyCamera = StickyCamera,
+    Drone = Drone,
+    Claymore = Claymore,
+    BreachCharge = BreachCharge,
+    RemoteC4 = RemoteC4,
+    ProximityAlarm = ProximityAlarm,
+}
