@@ -427,7 +427,7 @@ local function CreateESP(CharacterModel)
 		DepthMode = "AlwaysOnTop",
 	})
 
-local cornerThickness = ESP.Drawing.Boxes.Corner.Thickness
+	local cornerThickness = ESP.Drawing.Boxes.Corner.Thickness
 	local cornerLength = ESP.Drawing.Boxes.Corner.Length
 	local cornerProps = {
 		Parent = ESPFolder,
@@ -516,7 +516,7 @@ local cornerThickness = ESP.Drawing.Boxes.Corner.Thickness
 			return
 		end
 
-		local torso = CharacterModel:FindFirstChild("torso")
+local torso = CharacterModel:FindFirstChild("torso")
 		if not torso or torso.Transparency >= 1 then
 			HideESP()
 			return
@@ -670,7 +670,6 @@ local cornerThickness = ESP.Drawing.Boxes.Corner.Thickness
 			end
 
 			-- Health ESP
-			Health.Visible = ESP.Drawing.Health.Enabled
 			if ESP.Drawing.Health.Enabled then
 				local humanoid = CharacterModel:FindFirstChild("Humanoid")
 				if humanoid then
@@ -681,9 +680,12 @@ local cornerThickness = ESP.Drawing.Boxes.Corner.Thickness
 					local g = math.floor(255 * (humanoid.Health / humanoid.MaxHealth))
 					Health.TextColor3 = Color3.fromRGB(r, g, 0)
 					Health.Position = UDim2.new(0, Pos.X, 0, Pos.Y - h / 2 - 9 - 15 + verticalOffset)
+					Health.Visible = true
 				else
 					Health.Visible = false
 				end
+			else
+				Health.Visible = false
 			end
 
 			if ESP.Drawing.Skeleton.Enabled and not ActiveSkeletons[CharacterModel] then
@@ -815,6 +817,7 @@ ESP.SetCornerLength = function(length)
 	end
 end
 
+-- HEALTH ESP FUNCTIONS
 ESP.ToggleHealth = function(enabled)
 	ESP.Drawing.Health.Enabled = enabled
 end
