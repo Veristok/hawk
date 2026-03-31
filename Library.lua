@@ -6343,36 +6343,22 @@ function Library:CreateWindow(WindowInfo)
             end)
         end
 
-        New("ImageLabel", {
-            Image = ResizeIcon and ResizeIcon.Url or "",
-            ImageColor3 = "FontColor",
-            ImageRectOffset = ResizeIcon and ResizeIcon.ImageRectOffset or Vector2.zero,
-            ImageRectSize = ResizeIcon and ResizeIcon.ImageRectSize or Vector2.zero,
-            ImageTransparency = 0.5,
-            Position = UDim2.fromOffset(2, 2),
-            Size = UDim2.new(1, -4, 1, -4),
-            Parent = ResizeButton,
-        })
+                            --// Tabs \\--
+Tabs = New("ScrollingFrame", {
+    AutomaticCanvasSize = Enum.AutomaticSize.Y,
+    BackgroundColor3 = "BackgroundColor",
+    CanvasSize = UDim2.fromScale(0, 0),
+    Position = UDim2.fromOffset(0, 49),
+    ScrollBarThickness = 0,
+    Size = UDim2.new(0, InitialLeftWidth, 1, -70),
+    Parent = MainFrame,
+})
+New("UIListLayout", {
+    Parent = Tabs,
+})
 
-        --// Tabs \\--
-        Tabs = New("ScrollingFrame", {
-            AutomaticCanvasSize = Enum.AutomaticSize.Y,
-            BackgroundColor3 = "BackgroundColor",
-            CanvasSize = UDim2.fromScale(0, 0),
-            Position = UDim2.fromOffset(0, 49),
-            ScrollBarThickness = 0,
-            Size = UDim2.new(0, InitialLeftWidth, 1, -70),
-            Parent = MainFrame,
-        })
-        New("UIListLayout", {
-            Parent = Tabs,
-        })
-
-                            --[[
-    Добавление панели профиля игрока в верхней части списка вкладок
---]]
-
--- Функция для загрузки аватарки игрока
+-- ========== ПАНЕЛЬ ПРОФИЛЯ ИГРОКА ==========
+-- Функция для загрузки аватарки
 local function UpdatePlayerAvatar(ImageLabel)
     local userId = LocalPlayer.UserId
     if userId and userId > 0 then
@@ -6381,7 +6367,7 @@ local function UpdatePlayerAvatar(ImageLabel)
     end
 end
 
--- Создаем панель профиля (будет выглядеть как неактивная вкладка)
+-- Создаем панель профиля
 local ProfileFrame = New("TextButton", {
     Name = "PlayerProfile",
     BackgroundColor3 = "MainColor",
@@ -6393,23 +6379,18 @@ local ProfileFrame = New("TextButton", {
     Parent = Tabs,
 })
 
--- Добавляем скругление углов
 New("UICorner", {
     CornerRadius = UDim.new(0, WindowInfo.CornerRadius),
     Parent = ProfileFrame,
 })
-
--- Добавляем обводку
 Library:AddOutline(ProfileFrame)
 
--- Контейнер для содержимого
 local ProfileContainer = New("Frame", {
     BackgroundTransparency = 1,
     Size = UDim2.new(1, 0, 1, 0),
     Parent = ProfileFrame,
 })
 
--- Горизонтальное расположение (аватар слева, текст справа)
 New("UIListLayout", {
     FillDirection = Enum.FillDirection.Horizontal,
     VerticalAlignment = Enum.VerticalAlignment.Center,
@@ -6417,7 +6398,7 @@ New("UIListLayout", {
     Parent = ProfileContainer,
 })
 
--- Аватарка игрока
+-- Аватарка
 local AvatarImage = New("ImageLabel", {
     BackgroundColor3 = "BackgroundColor",
     Size = UDim2.fromOffset(44, 44),
@@ -6431,14 +6412,13 @@ New("UICorner", {
 })
 Library:AddOutline(AvatarImage)
 
--- Контейнер для текстовой информации
+-- Контейнер для текста
 local TextContainer = New("Frame", {
     BackgroundTransparency = 1,
     Size = UDim2.new(1, -56, 1, 0),
     Parent = ProfileContainer,
 })
 
--- Вертикальное расположение текста
 New("UIListLayout", {
     FillDirection = Enum.FillDirection.Vertical,
     VerticalAlignment = Enum.VerticalAlignment.Center,
@@ -6446,30 +6426,27 @@ New("UIListLayout", {
     Parent = TextContainer,
 })
 
--- Имя игрока
+-- Имя игрока (используем обычный цвет)
 local PlayerNameLabel = New("TextLabel", {
     BackgroundTransparency = 1,
     Size = UDim2.new(1, 0, 0, 20),
     Text = LocalPlayer.DisplayName or LocalPlayer.Name,
     TextSize = 15,
-    TextColor3 = "FontColor",
+    TextColor3 = Library.Scheme.FontColor, --直接用Color3值
     TextXAlignment = Enum.TextXAlignment.Left,
     TextTruncate = Enum.TextTruncate.AtEnd,
     Parent = TextContainer,
 })
 
--- Статус
+-- Статус (используем обычный цвет)
 local StatusLabel = New("TextLabel", {
     BackgroundTransparency = 1,
     Size = UDim2.new(1, 0, 0, 16),
     Text = "Loaded",
     TextSize = 12,
-    TextColor3 = "TextSecondary",
+    TextColor3 = Library.Scheme.TextSecondary or Color3.fromRGB(180, 180, 195),
     TextXAlignment = Enum.TextXAlignment.Left,
     Parent = TextContainer,
-})
-Library:AddToRegistry(StatusLabel, {
-    TextColor3 = "TextSecondary",
 })
 
 -- Загружаем аватарку
@@ -6480,7 +6457,7 @@ Library:GiveSignal(LocalPlayer.CharacterAdded:Connect(function()
     UpdatePlayerAvatar(AvatarImage)
 end))
 
--- Разделитель после панели профиля
+-- Разделитель
 local ProfileSeparator = New("Frame", {
     BackgroundColor3 = "OutlineColor",
     Position = UDim2.fromOffset(0, 70),
@@ -6488,18 +6465,16 @@ local ProfileSeparator = New("Frame", {
     Parent = Tabs,
 })
 
--- Добавляем пустой элемент для отступа
+-- Отступ
 Library:AddBlank(Tabs, UDim2.fromOffset(0, 4))
 
--- Функции для управления панелью
+-- Функции для управления
 function ProfileFrame:SetStatus(text, isError)
     StatusLabel.Text = text or "Loaded"
     if isError then
         StatusLabel.TextColor3 = Library.Scheme.RedColor
-        Library:AddToRegistry(StatusLabel, { TextColor3 = "RedColor" })
     else
-        StatusLabel.TextColor3 = Library.Scheme.TextSecondary
-        Library:AddToRegistry(StatusLabel, { TextColor3 = "TextSecondary" })
+        StatusLabel.TextColor3 = Library.Scheme.TextSecondary or Color3.fromRGB(180, 180, 195)
     end
 end
 
@@ -6511,9 +6486,10 @@ function ProfileFrame:RefreshAvatar()
     UpdatePlayerAvatar(AvatarImage)
 end
 
--- Сохраняем в объект окна
+-- Сохраняем в окно
 Window.PlayerProfile = ProfileFrame
 
+        
         --// Container \\--
         Container = New("Frame", {
             AnchorPoint = Vector2.new(1, 0),
