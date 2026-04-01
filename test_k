@@ -47,9 +47,16 @@ local ESP = {
 			Enabled = false,
 			RGB = Color3.fromRGB(255, 255, 255),
 		},
-		Health = {
+		HealthBar = {
 			Enabled = false,
-			RGB = Color3.fromRGB(255, 255, 255),
+			Width = 4,
+			Height = 0,
+			Position = "Left",
+			ShowText = true,
+			TextSize = 10,
+			ColorLow = Color3.fromRGB(255, 0, 0),
+			ColorMid = Color3.fromRGB(255, 255, 0),
+			ColorHigh = Color3.fromRGB(0, 255, 0),
 		},
 		Boxes = {
 			Animate = false,
@@ -86,6 +93,47 @@ local ESP = {
 		},
 	},
 }
+
+local function getPlayerHealth(character)
+	if not character then
+		return 0, 100
+	end
+	
+	local humanoid = character:FindFirstChild("Humanoid")
+	if humanoid then
+		local health = humanoid.Health
+		local maxHealth = humanoid.MaxHealth
+		return health, maxHealth
+	end
+	
+	local healthAttr = character:GetAttribute("Health")
+	local maxHealthAttr = character:GetAttribute("MaxHealth")
+	if healthAttr and maxHealthAttr then
+		return healthAttr, maxHealthAttr
+	end
+	
+	return 100, 100
+end
+
+local function getHealthColor(percent)
+	if percent >= 70 then
+		return ESP.Drawing.HealthBar.ColorHigh
+	elseif percent >= 30 then
+		local t = (percent - 30) / 40
+		return Color3.new(
+			ESP.Drawing.HealthBar.ColorHigh.R * t + ESP.Drawing.HealthBar.ColorMid.R * (1 - t),
+			ESP.Drawing.HealthBar.ColorHigh.G * t + ESP.Drawing.HealthBar.ColorMid.G * (1 - t),
+			ESP.Drawing.HealthBar.ColorHigh.B * t + ESP.Drawing.HealthBar.ColorMid.B * (1 - t)
+		)
+	else
+		local t = percent / 30
+		return Color3.new(
+			ESP.Drawing.HealthBar.ColorMid.R * t + ESP.Drawing.HealthBar.ColorLow.R * (1 - t),
+			ESP.Drawing.HealthBar.ColorMid.G * t + ESP.Drawing.HealthBar.ColorLow.G * (1 - t),
+			ESP.Drawing.HealthBar.ColorMid.B * t + ESP.Drawing.HealthBar.ColorLow.B * (1 - t)
+		)
+	end
+end
 
 local BONE_CONNECTIONS = {
 	{ "torso", "shoulder1" },
@@ -369,16 +417,33 @@ local function CreateESP(CharacterModel)
 		RichText = true,
 	})
 
-	local Health = Functions:Create("TextLabel", {
+	local HealthBarContainer = Functions:Create("Frame", {
 		Parent = ESPFolder,
-		Name = "HealthLabel",
+		Name = "HealthBarContainer",
+		BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+		BackgroundTransparency = 0.5,
+		BorderSizePixel = 0,
+	})
+	
+	local HealthBarFill = Functions:Create("Frame", {
+		Parent = HealthBarContainer,
+		Name = "HealthBarFill",
+		BackgroundColor3 = Color3.fromRGB(0, 255, 0),
+		BackgroundTransparency = 0,
+		BorderSizePixel = 0,
+		Size = UDim2.new(1, 0, 0, 0),
+	})
+	
+	local HealthBarText = Functions:Create("TextLabel", {
+		Parent = ESPFolder,
+		Name = "HealthBarText",
 		Position = UDim2.new(0.5, 0, 0, 0),
-		Size = UDim2.new(0, 60, 0, 20),
+		Size = UDim2.new(0, 40, 0, 14),
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		BackgroundTransparency = 1,
 		TextColor3 = Color3.fromRGB(255, 255, 255),
 		Font = Enum.Font.Code,
-		TextSize = ESP.FontSize,
+		TextSize = ESP.Drawing.HealthBar.TextSize,
 		TextStrokeTransparency = 0,
 		TextStrokeColor3 = Color3.fromRGB(0, 0, 0),
 		Text = "100%",
@@ -437,7 +502,7 @@ local function CreateESP(CharacterModel)
 		Position = UDim2.new(0, 0, 0, 0),
 	}
 
-	local LeftTopHorizontal = Functions:Create("Frame", cornerProps)
+local LeftTopHorizontal = Functions:Create("Frame", cornerProps)
 	LeftTopHorizontal.Name = "LeftTopHorizontal"
 	LeftTopHorizontal.Size = UDim2.new(0, cornerLength, 0, cornerThickness)
 
@@ -476,7 +541,8 @@ local function CreateESP(CharacterModel)
 		Box.Visible = false
 		Name.Visible = false
 		Weapon.Visible = false
-		Health.Visible = false
+		HealthBarContainer.Visible = false
+		HealthBarText.Visible = false
 		LeftTopHorizontal.Visible = false
 		LeftTopVertical.Visible = false
 		RightTopHorizontal.Visible = false
@@ -537,14 +603,18 @@ local function CreateESP(CharacterModel)
 			local verticalOffset = h * 0.175
 			local dynamicCornerLength = math.min(cornerLength, w * 0.2, h * 0.2)
 
+			local health, maxHealth = getPlayerHealth(CharacterModel)
+			local healthPercent = (health / maxHealth) * 100
+			local healthPercentClamped = math.clamp(healthPercent, 0, 100)
+			
 			if ESP.FadeOut.OnDistance then
 				Functions:FadeOutOnDist(Box, Dist)
-
-Functions:FadeOutOnDist(Outline, Dist)
+				Functions:FadeOutOnDist(Outline, Dist)
 				Functions:FadeOutOnDist(Name, Dist)
 				Functions:FadeOutOnDist(Weapon, Dist)
-				Functions:FadeOutOnDist(Health, Dist)
 				Functions:FadeOutOnDist(Chams, Dist)
+				Functions:FadeOutOnDist(HealthBarContainer, Dist)
+				Functions:FadeOutOnDist(HealthBarText, Dist)
 				Functions:FadeOutOnDist(LeftTopHorizontal, Dist)
 				Functions:FadeOutOnDist(LeftTopVertical, Dist)
 				Functions:FadeOutOnDist(RightTopHorizontal, Dist)
@@ -581,8 +651,7 @@ Functions:FadeOutOnDist(Outline, Dist)
 			LeftTopVertical.BackgroundColor3 = cColor
 
 			RightTopHorizontal.Visible = cornerVisible
-			RightTopHorizontal.Position =
-				UDim2.new(0, Pos.X + w / 2 - dynamicCornerLength, 0, Pos.Y - h / 2 + verticalOffset)
+			RightTopHorizontal.Position = UDim2.new(0, Pos.X + w / 2 - dynamicCornerLength, 0, Pos.Y - h / 2 + verticalOffset)
 			RightTopHorizontal.Size = UDim2.new(0, dynamicCornerLength, 0, cornerThickness)
 			RightTopHorizontal.BackgroundColor3 = cColor
 
@@ -592,26 +661,22 @@ Functions:FadeOutOnDist(Outline, Dist)
 			RightTopVertical.BackgroundColor3 = cColor
 
 			LeftBottomHorizontal.Visible = cornerVisible
-			LeftBottomHorizontal.Position =
-				UDim2.new(0, Pos.X - w / 2, 0, Pos.Y + h / 2 + verticalOffset - cornerThickness)
+			LeftBottomHorizontal.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y + h / 2 + verticalOffset - cornerThickness)
 			LeftBottomHorizontal.Size = UDim2.new(0, dynamicCornerLength, 0, cornerThickness)
 			LeftBottomHorizontal.BackgroundColor3 = cColor
 
 			LeftBottomVertical.Visible = cornerVisible
-			LeftBottomVertical.Position =
-				UDim2.new(0, Pos.X - w / 2, 0, Pos.Y + h / 2 + verticalOffset - dynamicCornerLength)
+			LeftBottomVertical.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y + h / 2 + verticalOffset - dynamicCornerLength)
 			LeftBottomVertical.Size = UDim2.new(0, cornerThickness, 0, dynamicCornerLength)
 			LeftBottomVertical.BackgroundColor3 = cColor
 
 			RightBottomHorizontal.Visible = cornerVisible
-			RightBottomHorizontal.Position =
-				UDim2.new(0, Pos.X + w / 2 - dynamicCornerLength, 0, Pos.Y + h / 2 + verticalOffset - cornerThickness)
+			RightBottomHorizontal.Position = UDim2.new(0, Pos.X + w / 2 - dynamicCornerLength, 0, Pos.Y + h / 2 + verticalOffset - cornerThickness)
 			RightBottomHorizontal.Size = UDim2.new(0, dynamicCornerLength, 0, cornerThickness)
 			RightBottomHorizontal.BackgroundColor3 = cColor
 
 			RightBottomVertical.Visible = cornerVisible
-			RightBottomVertical.Position =
-				UDim2.new(0, Pos.X + w / 2 - cornerThickness, 0, Pos.Y + h / 2 + verticalOffset - dynamicCornerLength)
+			RightBottomVertical.Position = UDim2.new(0, Pos.X + w / 2 - cornerThickness, 0, Pos.Y + h / 2 + verticalOffset - dynamicCornerLength)
 			RightBottomVertical.Size = UDim2.new(0, cornerThickness, 0, dynamicCornerLength)
 			RightBottomVertical.BackgroundColor3 = cColor
 
@@ -632,10 +697,46 @@ Functions:FadeOutOnDist(Outline, Dist)
 
 			Outline.Enabled = full and ESP.Drawing.Boxes.Gradient
 
+			-- Health Bar - теперь независим от бокса
+			local healthBarEnabled = ESP.Drawing.HealthBar.Enabled
+			
+			if healthBarEnabled then
+				local barWidth = ESP.Drawing.HealthBar.Width
+				local barPosition = ESP.Drawing.HealthBar.Position
+				local healthBarHeight = h
+				
+				local healthBarX
+				if barPosition == "Left" then
+					healthBarX = Pos.X - w / 2 - barWidth - 2
+				else
+					healthBarX = Pos.X + w / 2 + 2
+				end
+				
+				local healthBarY = Pos.Y - healthBarHeight / 2 + verticalOffset
+				
+				HealthBarContainer.Visible = true
+				HealthBarContainer.Position = UDim2.new(0, healthBarX, 0, healthBarY)
+				HealthBarContainer.Size = UDim2.new(0, barWidth, 0, healthBarHeight)
+				HealthBarFill.Size = UDim2.new(1, 0, healthPercentClamped / 100, 0)
+				HealthBarFill.Position = UDim2.new(0, 0, 1 - (healthPercentClamped / 100), 0)
+				HealthBarFill.BackgroundColor3 = getHealthColor(healthPercentClamped)
+				
+				if ESP.Drawing.HealthBar.ShowText then
+					HealthBarText.Visible = true
+					HealthBarText.Text = string.format("%.0f%%", healthPercentClamped)
+					HealthBarText.TextSize = ESP.Drawing.HealthBar.TextSize
+					HealthBarText.Position = UDim2.new(0, Pos.X, 0, Pos.Y + h / 2 + 5 + verticalOffset)
+				else
+					HealthBarText.Visible = false
+				end
+			else
+				HealthBarContainer.Visible = false
+				HealthBarText.Visible = false
+			end
+
 			local CurrentTick = tick()
 			local DeltaTime = CurrentTick - LastTick
-			RotationAngle = RotationAngle
-				+ DeltaTime * ESP.Drawing.Boxes.RotationSpeed * math.cos(math.pi / 4 * CurrentTick - math.pi / 2)
+			RotationAngle = RotationAngle + DeltaTime * ESP.Drawing.Boxes.RotationSpeed * math.cos(math.pi / 4 * CurrentTick - math.pi / 2)
 
 			if ESP.Drawing.Boxes.Animate then
 				Gradient1.Rotation = RotationAngle
@@ -668,24 +769,6 @@ Functions:FadeOutOnDist(Outline, Dist)
 				else
 					Weapon.Visible = false
 				end
-			end
-
-			-- HEALTH ESP
-			if ESP.Drawing.Health.Enabled then
-				local humanoid = CharacterModel:FindFirstChild("Humanoid")
-				if humanoid then
-					local healthPercent = math.floor((humanoid.Health / humanoid.MaxHealth) * 100)
-					Health.Text = healthPercent .. "%"
-					local r = math.floor(255 * (1 - (humanoid.Health / humanoid.MaxHealth)))
-					local g = math.floor(255 * (humanoid.Health / humanoid.MaxHealth))
-					Health.TextColor3 = Color3.fromRGB(r, g, 0)
-					Health.Position = UDim2.new(0, Pos.X, 0, Pos.Y - h / 2 - 9 - 15 + verticalOffset)
-					Health.Visible = true
-				else
-					Health.Visible = false
-				end
-			else
-				Health.Visible = false
 			end
 
 			if ESP.Drawing.Skeleton.Enabled and not ActiveSkeletons[CharacterModel] then
@@ -817,14 +900,41 @@ ESP.SetCornerLength = function(length)
 	end
 end
 
--- HEALTH ESP FUNCTIONS
-ESP.ToggleHealth = function(enabled)
-	ESP.Drawing.Health.Enabled = enabled
+ESP.ToggleHealthBar = function(enabled)
+	ESP.Drawing.HealthBar.Enabled = enabled
 end
 
-ESP.SetHealthColor = function(color)
-	if typeof(color) == "Color3" then
-		ESP.Drawing.Health.RGB = color
+ESP.SetHealthBarWidth = function(width)
+	if type(width) == "number" and width > 0 then
+		ESP.Drawing.HealthBar.Width = width
+	end
+end
+
+ESP.SetHealthBarPosition = function(position)
+	if position == "Left" or position == "Right" then
+		ESP.Drawing.HealthBar.Position = position
+	end
+end
+
+ESP.ToggleHealthBarText = function(enabled)
+	ESP.Drawing.HealthBar.ShowText = enabled
+end
+
+ESP.SetHealthBarTextSize = function(size)
+	if type(size) == "number" and size > 0 then
+		ESP.Drawing.HealthBar.TextSize = size
+	end
+end
+
+ESP.SetHealthColors = function(low, mid, high)
+	if low and typeof(low) == "Color3" then
+		ESP.Drawing.HealthBar.ColorLow = low
+	end
+	if mid and typeof(mid) == "Color3" then
+		ESP.Drawing.HealthBar.ColorMid = mid
+	end
+	if high and typeof(high) == "Color3" then
+		ESP.Drawing.HealthBar.ColorHigh = high
 	end
 end
 
