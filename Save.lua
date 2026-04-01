@@ -1,4 +1,4 @@
--- ============ XANBAR CONFIG MANAGER ============
+-- ============ XANBAR CONFIG MANAGER (FIXED) ============
 
 local SaveManager = {}
 
@@ -8,6 +8,13 @@ do
     SaveManager.Ignore = {}
     SaveManager.Library = nil
     SaveManager.AutoloadConfigLabel = nil
+
+    -- ПРАВИЛЬНОЕ ПОЛУЧЕНИЕ HTTP_SERVICE
+    local HttpService = game:GetService("HttpService")
+    
+    -- Копируем глобальные функции
+    local isfolder, isfile, listfiles = isfolder, isfile, listfiles
+    local makefolder, delfile, readfile, writefile = makefolder, delfile, readfile, writefile
 
     -- Парсер для XanBar элементов
     SaveManager.Parser = {
@@ -35,8 +42,7 @@ do
         },
         Dropdown = {
             Save = function(idx, obj)
-                local val = obj:Value()
-                return { type = "Dropdown", idx = idx, value = val }
+                return { type = "Dropdown", idx = idx, value = obj:Value() }
             end,
             Load = function(idx, data)
                 local obj = SaveManager.Library.Options[idx]
@@ -58,13 +64,13 @@ do
         },
         Keybind = {
             Save = function(idx, obj)
-                local key = obj:Value()
-                return { type = "Keybind", idx = idx, key = tostring(key) }
+                return { type = "Keybind", idx = idx, key = tostring(obj:Value()) }
             end,
             Load = function(idx, data)
                 local obj = SaveManager.Library.Options[idx]
                 if obj then
-                    local key = Enum.KeyCode[data.key:gsub("Enum.KeyCode.", "")]
+                    local keyName = data.key:gsub("Enum.KeyCode.", "")
+                    local key = Enum.KeyCode[keyName]
                     if key then obj:Set(key) end
                 end
             end,
@@ -100,39 +106,6 @@ do
         self.Library = library
         self.Toggles = {}
         self.Options = {}
-        
-        -- Собираем все элементы из окон
-        for _, win in ipairs(library.Windows or {}) do
-            for _, tab in ipairs(win.Tabs or {}) do
-                -- Проходим по элементам в скролле
-                local scroll = tab.Scroll
-                if scroll then
-                    for _, child in ipairs(scroll:GetChildren()) do
-                        if child:IsA("Frame") then
-                            local toggle = child:FindFirstChild("ToggleBg")
-                            local slider = child:FindFirstChild("Track")
-                            local input = child:FindFirstChild("Input")
-                            local color = child:FindFirstChild("Picker")
-                            
-                            if toggle then
-                                local label = child:FindFirstChild("Label")
-                                if label then
-                                    local name = label.Text
-                                    self.Toggles[name] = {
-                                        Type = "Toggle",
-                                        Value = function() return child.ToggleBg.BackgroundColor3 == library.CurrentTheme.ToggleEnabled end,
-                                        Set = function(v)
-                                            local btn = child:FindFirstChild("Hitbox")
-                                            if btn then btn.MouseButton1Click:Fire() end
-                                        end
-                                    }
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end
     end
 
     function SaveManager:IgnoreThemeSettings()
@@ -176,14 +149,13 @@ do
         -- Сохраняем флаги через XanBar
         for flag, value in pairs(self.Library.Flags or {}) do
             if not self.Ignore[flag] then
-                local typeName = type(value)
                 local obj = { type = "Flag", idx = flag, value = value }
                 
-                if typeName == "boolean" then
+                if type(value) == "boolean" then
                     obj.type = "Toggle"
-                elseif typeName == "number" then
+                elseif type(value) == "number" then
                     obj.type = "Slider"
-                elseif typeName == "string" then
+                elseif type(value) == "string" then
                     obj.type = "Input"
                 elseif typeof(value) == "Color3" then
                     obj.type = "ColorPicker"
@@ -223,12 +195,13 @@ do
 
         for _, obj in pairs(decoded.objects or {}) do
             if not self.Ignore[obj.idx] then
-                if obj.type == "Flag" or obj.type == "Toggle" or obj.type == "Slider" or obj.type == "Input" then
+                if obj.type == "Toggle" or obj.type == "Slider" or obj.type == "Input" then
                     self.Library:SetFlag(obj.idx, obj.value)
                 elseif obj.type == "ColorPicker" then
                     self.Library:SetFlag(obj.idx, Color3.fromHex(obj.value))
                 elseif obj.type == "Keybind" then
-                    local key = Enum.KeyCode[obj.value:gsub("Enum.KeyCode.", "")]
+                    local keyName = tostring(obj.value):gsub("Enum.KeyCode.", "")
+                    local key = Enum.KeyCode[keyName]
                     if key then self.Library:SetFlag(obj.idx, key) end
                 end
             end
@@ -313,11 +286,9 @@ do
 
         tab:AddSection("Configuration")
 
-        -- Поле ввода имени
         local nameInput = tab:AddInput("Config Name", "config_name")
         nameInput:Set("my_config")
 
-        -- Кнопка сохранения
         tab:AddButton("Save Config", function()
             local name = nameInput:Value()
             if name == "" then
@@ -335,10 +306,8 @@ do
 
         tab:AddDivider()
 
-        -- Выпадающий список конфигов
         local configList = tab:AddDropdown("Config List", "config_list", self:RefreshConfigList())
 
-        -- Загрузка
         tab:AddButton("Load Config", function()
             local name = configList:Value()
             if not name then
@@ -353,7 +322,6 @@ do
             end
         end)
 
-        -- Перезапись
         tab:AddButton("Overwrite Config", function()
             local name = configList:Value()
             if not name then
@@ -368,7 +336,6 @@ do
             end
         end)
 
-        -- Удаление
         tab:AddButton("Delete Config", function()
             local name = configList:Value()
             if not name then
@@ -381,14 +348,12 @@ do
             configList:Set(nil)
         end)
 
-        -- Обновить список
         tab:AddButton("Refresh List", function()
             configList:SetOptions(self:RefreshConfigList())
         end)
 
         tab:AddDivider()
 
-        -- Автозагрузка
         local autoLabel = tab:AddLabel("Autoload: " .. self:GetAutoloadConfig())
 
         tab:AddButton("Set as Autoload", function()
@@ -408,7 +373,6 @@ do
             self.Library:Notify({ Title = "Autoload Cleared", Content = "No config will auto-load", Type = "Info" })
         end)
 
-        -- Сброс всех настроек
         tab:AddButton("Reset All Settings", function()
             self.Library:ResetAllFlags()
             self.Library:Notify({ Title = "Reset", Content = "All settings reset to defaults!", Type = "Success" })
@@ -417,7 +381,6 @@ do
         self.AutoloadConfigLabel = autoLabel
         self:SetIgnoreIndexes({ "config_name", "config_list" })
         
-        -- Загружаем автоконфиг
         self:LoadAutoloadConfig()
     end
 
