@@ -1,4 +1,4 @@
--- ============ XANBAR CONFIG MANAGER (FIXED) ============
+-- ============ XANBAR CONFIG MANAGER (FULLY FIXED) ============
 
 local SaveManager = {}
 
@@ -9,12 +9,42 @@ do
     SaveManager.Library = nil
     SaveManager.AutoloadConfigLabel = nil
 
-    -- ПРАВИЛЬНОЕ ПОЛУЧЕНИЕ HTTP_SERVICE
+    -- Получаем HttpService
     local HttpService = game:GetService("HttpService")
     
     -- Копируем глобальные функции
-    local isfolder, isfile, listfiles = isfolder, isfile, listfiles
-    local makefolder, delfile, readfile, writefile = makefolder, delfile, readfile, writefile
+    local isfolder = isfolder
+    local isfile = isfile
+    local listfiles = listfiles
+    local makefolder = makefolder
+    local delfile = delfile
+    local readfile = readfile
+    local writefile = writefile
+
+    -- Универсальные методы JSON (поддержка разных экзекуторов)
+    local function jsonEncode(data)
+        if HttpService.JSONEncode then
+            return HttpService:JSONEncode(data)
+        elseif HttpService.EncodeJson then
+            return HttpService:EncodeJson(data)
+        elseif HttpService.Encode then
+            return HttpService:Encode(data)
+        else
+            return HttpService:JSONEncode(data)
+        end
+    end
+
+    local function jsonDecode(data)
+        if HttpService.JSONDecode then
+            return HttpService:JSONDecode(data)
+        elseif HttpService.DecodeJson then
+            return HttpService:DecodeJson(data)
+        elseif HttpService.Decode then
+            return HttpService:Decode(data)
+        else
+            return HttpService:JSONDecode(data)
+        end
+    end
 
     -- Парсер для XanBar элементов
     SaveManager.Parser = {
@@ -69,7 +99,7 @@ do
             Load = function(idx, data)
                 local obj = SaveManager.Library.Options[idx]
                 if obj then
-                    local keyName = data.key:gsub("Enum.KeyCode.", "")
+                    local keyName = tostring(data.key):gsub("Enum.KeyCode.", "")
                     local key = Enum.KeyCode[keyName]
                     if key then obj:Set(key) end
                 end
@@ -169,12 +199,17 @@ do
             end
         end
 
-        local success, encoded = pcall(HttpService.JSONEncode, HttpService, data)
+        local success, encoded = pcall(jsonEncode, data)
         if not success then
-            return false, "encode error"
+            return false, "encode error: " .. tostring(encoded)
         end
 
-        writefile(self:GetFilePath(name), encoded)
+        local filePath = self:GetFilePath(name)
+        local writeSuccess, writeErr = pcall(writefile, filePath, encoded)
+        if not writeSuccess then
+            return false, "write error: " .. tostring(writeErr)
+        end
+        
         return true
     end
 
@@ -188,9 +223,18 @@ do
             return false, "config not found"
         end
 
-        local success, decoded = pcall(HttpService.JSONDecode, HttpService, readfile(file))
+        local content
+        local readSuccess, readErr = pcall(function()
+            content = readfile(file)
+        end)
+        
+        if not readSuccess then
+            return false, "read error: " .. tostring(readErr)
+        end
+
+        local success, decoded = pcall(jsonDecode, content)
         if not success then
-            return false, "decode error"
+            return false, "decode error: " .. tostring(decoded)
         end
 
         for _, obj in pairs(decoded.objects or {}) do
@@ -211,11 +255,20 @@ do
     end
 
     function SaveManager:Delete(name)
+        if not name or name == "" then
+            return false, "no config name"
+        end
+        
         local file = self:GetFilePath(name)
         if not isfile(file) then
             return false, "config not found"
         end
-        delfile(file)
+        
+        local success, err = pcall(delfile, file)
+        if not success then
+            return false, "delete error: " .. tostring(err)
+        end
+        
         return true
     end
 
@@ -245,19 +298,31 @@ do
         if self.SubFolder and self.SubFolder ~= "" then
             path = self.Folder .. "/settings/" .. self.SubFolder .. "/autoload.txt"
         end
+        
         if isfile(path) then
-            return readfile(path)
+            local success, name = pcall(readfile, path)
+            if success then
+                return name
+            end
         end
         return "none"
     end
 
     function SaveManager:SaveAutoloadConfig(name)
+        if not name or name == "" then
+            return false, "no config name"
+        end
+        
         ensureFolders()
         local path = self.Folder .. "/settings/autoload.txt"
         if self.SubFolder and self.SubFolder ~= "" then
             path = self.Folder .. "/settings/" .. self.SubFolder .. "/autoload.txt"
         end
-        writefile(path, name)
+        
+        local success, err = pcall(writefile, path, name)
+        if not success then
+            return false, "write error: " .. tostring(err)
+        end
         return true
     end
 
@@ -266,15 +331,18 @@ do
         if self.SubFolder and self.SubFolder ~= "" then
             path = self.Folder .. "/settings/" .. self.SubFolder .. "/autoload.txt"
         end
-        if isfile(path) then delfile(path) end
+        
+        if isfile(path) then
+            pcall(delfile, path)
+        end
         return true
     end
 
     function SaveManager:LoadAutoloadConfig()
         local name = self:GetAutoloadConfig()
-        if name ~= "none" then
-            self:Load(name)
-            if self.AutoloadConfigLabel then
+        if name ~= "none" and name ~= "" then
+            local success, err = self:Load(name)
+            if success and self.AutoloadConfigLabel then
                 self.AutoloadConfigLabel:SetText("Autoload: " .. name)
             end
         end
@@ -286,9 +354,11 @@ do
 
         tab:AddSection("Configuration")
 
+        -- Поле ввода имени
         local nameInput = tab:AddInput("Config Name", "config_name")
         nameInput:Set("my_config")
 
+        -- Кнопка сохранения
         tab:AddButton("Save Config", function()
             local name = nameInput:Value()
             if name == "" then
@@ -306,8 +376,10 @@ do
 
         tab:AddDivider()
 
+        -- Выпадающий список конфигов
         local configList = tab:AddDropdown("Config List", "config_list", self:RefreshConfigList())
 
+        -- Загрузка
         tab:AddButton("Load Config", function()
             local name = configList:Value()
             if not name then
@@ -322,6 +394,7 @@ do
             end
         end)
 
+        -- Перезапись
         tab:AddButton("Overwrite Config", function()
             local name = configList:Value()
             if not name then
@@ -336,24 +409,31 @@ do
             end
         end)
 
+        -- Удаление
         tab:AddButton("Delete Config", function()
             local name = configList:Value()
             if not name then
                 self.Library:Notify({ Title = "Error", Content = "Select a config!", Type = "Error" })
                 return
             end
-            self:Delete(name)
-            self.Library:Notify({ Title = "Deleted", Content = "Config '" .. name .. "' deleted!", Type = "Warning" })
-            configList:SetOptions(self:RefreshConfigList())
-            configList:Set(nil)
+            local success, err = self:Delete(name)
+            if success then
+                self.Library:Notify({ Title = "Deleted", Content = "Config '" .. name .. "' deleted!", Type = "Warning" })
+                configList:SetOptions(self:RefreshConfigList())
+                configList:Set(nil)
+            else
+                self.Library:Notify({ Title = "Error", Content = err, Type = "Error" })
+            end
         end)
 
+        -- Обновить список
         tab:AddButton("Refresh List", function()
             configList:SetOptions(self:RefreshConfigList())
         end)
 
         tab:AddDivider()
 
+        -- Автозагрузка
         local autoLabel = tab:AddLabel("Autoload: " .. self:GetAutoloadConfig())
 
         tab:AddButton("Set as Autoload", function()
@@ -362,9 +442,13 @@ do
                 self.Library:Notify({ Title = "Error", Content = "Select a config!", Type = "Error" })
                 return
             end
-            self:SaveAutoloadConfig(name)
-            autoLabel:SetText("Autoload: " .. name)
-            self.Library:Notify({ Title = "Autoload Set", Content = "Config '" .. name .. "' will load automatically", Type = "Success" })
+            local success, err = self:SaveAutoloadConfig(name)
+            if success then
+                autoLabel:SetText("Autoload: " .. name)
+                self.Library:Notify({ Title = "Autoload Set", Content = "Config '" .. name .. "' will load automatically", Type = "Success" })
+            else
+                self.Library:Notify({ Title = "Error", Content = err, Type = "Error" })
+            end
         end)
 
         tab:AddButton("Clear Autoload", function()
@@ -373,6 +457,7 @@ do
             self.Library:Notify({ Title = "Autoload Cleared", Content = "No config will auto-load", Type = "Info" })
         end)
 
+        -- Сброс всех настроек
         tab:AddButton("Reset All Settings", function()
             self.Library:ResetAllFlags()
             self.Library:Notify({ Title = "Reset", Content = "All settings reset to defaults!", Type = "Success" })
@@ -381,6 +466,7 @@ do
         self.AutoloadConfigLabel = autoLabel
         self:SetIgnoreIndexes({ "config_name", "config_list" })
         
+        -- Загружаем автоконфиг
         self:LoadAutoloadConfig()
     end
 
