@@ -49,11 +49,11 @@ local ESP = {
 		},
 		HealthBar = {
 			Enabled = false,
-			Width = 4,
+			Width = 2,
 			Height = 0,
 			Position = "Left",
 			ShowText = true,
-			TextSize = 10,
+			TextSize = 8,
 			ColorLow = Color3.fromRGB(255, 0, 0),
 			ColorMid = Color3.fromRGB(255, 255, 0),
 			ColorHigh = Color3.fromRGB(0, 255, 0),
@@ -425,6 +425,16 @@ local function CreateESP(CharacterModel)
 		BorderSizePixel = 0,
 	})
 	
+	-- Обводка для Health Bar
+	local HealthBarStroke = Functions:Create("UIStroke", {
+		Parent = HealthBarContainer,
+		Name = "HealthBarStroke",
+		Thickness = 1,
+		Color = Color3.fromRGB(0, 0, 0),
+		Transparency = 0.3,
+		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+	})
+	
 	local HealthBarFill = Functions:Create("Frame", {
 		Parent = HealthBarContainer,
 		Name = "HealthBarFill",
@@ -502,7 +512,7 @@ local function CreateESP(CharacterModel)
 		Position = UDim2.new(0, 0, 0, 0),
 	}
 
-local LeftTopHorizontal = Functions:Create("Frame", cornerProps)
+	local LeftTopHorizontal = Functions:Create("Frame", cornerProps)
 	LeftTopHorizontal.Name = "LeftTopHorizontal"
 	LeftTopHorizontal.Size = UDim2.new(0, cornerLength, 0, cornerThickness)
 
@@ -522,7 +532,7 @@ local LeftTopHorizontal = Functions:Create("Frame", cornerProps)
 	LeftBottomHorizontal.Name = "LeftBottomHorizontal"
 	LeftBottomHorizontal.Size = UDim2.new(0, cornerLength, 0, cornerThickness)
 
-	local LeftBottomVertical = Functions:Create("Frame", cornerProps)
+local LeftBottomVertical = Functions:Create("Frame", cornerProps)
 	LeftBottomVertical.Name = "LeftBottomVertical"
 	LeftBottomVertical.Size = UDim2.new(0, cornerThickness, 0, cornerLength)
 
@@ -697,7 +707,7 @@ local LeftTopHorizontal = Functions:Create("Frame", cornerProps)
 
 			Outline.Enabled = full and ESP.Drawing.Boxes.Gradient
 
-			-- Health Bar - теперь независим от бокса
+			-- Health Bar
 			local healthBarEnabled = ESP.Drawing.HealthBar.Enabled
 			
 			if healthBarEnabled then
@@ -725,7 +735,11 @@ local LeftTopHorizontal = Functions:Create("Frame", cornerProps)
 					HealthBarText.Visible = true
 					HealthBarText.Text = string.format("%.0f%%", healthPercentClamped)
 					HealthBarText.TextSize = ESP.Drawing.HealthBar.TextSize
-					HealthBarText.Position = UDim2.new(0, Pos.X, 0, Pos.Y + h / 2 + 5 + verticalOffset)
+					-- Текст по центру полоски здоровья
+					local textX = healthBarX + barWidth / 2
+					local textY = healthBarY + healthBarHeight / 2
+					HealthBarText.Position = UDim2.new(0, textX, 0, textY)
+					HealthBarText.Size = UDim2.new(0, barWidth, 0, 14)
 				else
 					HealthBarText.Visible = false
 				end
