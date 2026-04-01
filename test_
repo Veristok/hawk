@@ -49,7 +49,7 @@ local ESP = {
 		},
 		HealthBar = {
 			Enabled = false,
-			Width = 0.6,
+			Width = 1,
 			Height = 0,
 			Position = "Left",
 			ShowText = false,
