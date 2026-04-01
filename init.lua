@@ -1,21 +1,3 @@
---[[
-    QUICK START (3 lines to a full hub):
-    
-    local UI = loadstring(game:HttpGet("URL"))()
-    local win, tab = UI.Quick("My Hub", "Combat", "crosshair")
-    
-    tab:AddToggle("Aimbot", "aim_on", function(v) Aimbot.Enabled = v end)
-    tab:AddSlider("FOV", "aim_fov", {10, 150, Default = 60}, function(v) end)
-    tab:AddDropdown("Hitbox", "aim_hit", {"Head", "Torso"}, function(v) end)
-    
-    -- Demo window: UI.Demo()
-    -- Schema builder: UI.Build({ Title = "Hub", Tabs = {...} })
-    You must use 
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/Cunzaki/Lua-UI-libs/refs/heads/main/init.lua"))()
-]]
-
-
-
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -23650,13 +23632,13 @@ function Xan:SaveConfiguration(configName)
                 EnumType = tostring(value.EnumType),
                 Name = value.Name
             }
-        elseif type(value) == "table" then
+        elseif type(value) == "table" then 
             data.Flags[flag] = {
                 Type = "Table",
-                Value = value
+                Value = HttpService:JSONEncode(value)
             }
         end
-    end
+end
     
     local success, encoded = pcall(function()
         return HttpService:JSONEncode(data)
@@ -23754,13 +23736,14 @@ function Xan:LoadConfiguration(configName)
                 pcall(function()
                     self:SetFlag(flag, Enum[value.EnumType][value.Name])
                 end)
-            elseif value.Type == "Table" then
-                self:SetFlag(flag, value.Value)
+            elseif value.Type == "Table" then 
+                local decoded = HttpService:JSONDecode(value.Value)
+                self:SetFlag(flag, decoded)
             end
         else
             self:SetFlag(flag, value)
         end
-    end
+end
     
     self:Notify({
         Title = "Configuration Loaded",
