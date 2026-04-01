@@ -429,7 +429,7 @@ local function CreateESP(CharacterModel)
 	local HealthBarStroke = Functions:Create("UIStroke", {
 		Parent = HealthBarContainer,
 		Name = "HealthBarStroke",
-		Thickness = 1,
+		Thickness = 0.5,
 		Color = Color3.fromRGB(0, 0, 0),
 		Transparency = 0.3,
 		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
