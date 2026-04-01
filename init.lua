@@ -30,7 +30,7 @@ local TeleportService = game:GetService("TeleportService")
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
-local IsMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+local IsMobile = false
 local IsTablet = IsMobile and (workspace.CurrentCamera.ViewportSize.X > 600)
 
 
