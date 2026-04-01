@@ -1,4 +1,4 @@
--- ============ XANBAR CONFIG MANAGER (FULLY FIXED) ============
+-- ============ XANBAR CONFIG MANAGER (FULLY FIXED - WORKING) ============
 
 local SaveManager = {}
 
@@ -46,77 +46,41 @@ do
         end
     end
 
-    -- Парсер для XanBar элементов
-    SaveManager.Parser = {
-        Toggle = {
-            Save = function(idx, obj)
-                return { type = "Toggle", idx = idx, value = obj:Value() }
-            end,
-            Load = function(idx, data)
-                local obj = SaveManager.Library.Toggles[idx]
-                if obj and obj:Value() ~= data.value then
-                    obj:Set(data.value)
+    -- Универсальная функция обновления Dropdown
+    local function updateDropdownList(dropdown, newList)
+        if not dropdown then return false end
+        
+        -- Пробуем разные методы XanBar
+        if dropdown.SetOptions then
+            dropdown:SetOptions(newList)
+            return true
+        elseif dropdown.SetValues then
+            dropdown:SetValues(newList)
+            return true
+        elseif dropdown.UpdateOptions then
+            dropdown:UpdateOptions(newList)
+            return true
+        elseif dropdown.SetItems then
+            dropdown:SetItems(newList)
+            return true
+        elseif dropdown.Set then
+            -- Некоторый костыль: сохраняем позицию и пересоздаем
+            local parent = dropdown.Frame and dropdown.Frame.Parent
+            local layoutOrder = dropdown.Frame and dropdown.Frame.LayoutOrder
+            local name = dropdown.Frame and dropdown.Frame.Name
+            
+            if parent and name then
+                dropdown.Frame:Destroy()
+                local newDropdown = parent:AddDropdown(name, nil, newList)
+                if newDropdown and newDropdown.Frame then
+                    newDropdown.Frame.LayoutOrder = layoutOrder
+                    return newDropdown
                 end
-            end,
-        },
-        Slider = {
-            Save = function(idx, obj)
-                return { type = "Slider", idx = idx, value = obj:Value() }
-            end,
-            Load = function(idx, data)
-                local obj = SaveManager.Library.Options[idx]
-                if obj and obj:Value() ~= data.value then
-                    obj:Set(data.value)
-                end
-            end,
-        },
-        Dropdown = {
-            Save = function(idx, obj)
-                return { type = "Dropdown", idx = idx, value = obj:Value() }
-            end,
-            Load = function(idx, data)
-                local obj = SaveManager.Library.Options[idx]
-                if obj and obj:Value() ~= data.value then
-                    obj:Set(data.value)
-                end
-            end,
-        },
-        ColorPicker = {
-            Save = function(idx, obj)
-                return { type = "ColorPicker", idx = idx, value = obj:Value():ToHex() }
-            end,
-            Load = function(idx, data)
-                local obj = SaveManager.Library.Options[idx]
-                if obj then
-                    obj:Set(Color3.fromHex(data.value))
-                end
-            end,
-        },
-        Keybind = {
-            Save = function(idx, obj)
-                return { type = "Keybind", idx = idx, key = tostring(obj:Value()) }
-            end,
-            Load = function(idx, data)
-                local obj = SaveManager.Library.Options[idx]
-                if obj then
-                    local keyName = tostring(data.key):gsub("Enum.KeyCode.", "")
-                    local key = Enum.KeyCode[keyName]
-                    if key then obj:Set(key) end
-                end
-            end,
-        },
-        Input = {
-            Save = function(idx, obj)
-                return { type = "Input", idx = idx, text = obj:Value() }
-            end,
-            Load = function(idx, data)
-                local obj = SaveManager.Library.Options[idx]
-                if obj and obj:Value() ~= data.text then
-                    obj:Set(data.text)
-                end
-            end,
-        },
-    }
+            end
+        end
+        
+        return false
+    end
 
     -- Вспомогательные функции
     local function ensureFolders()
@@ -348,7 +312,7 @@ do
         end
     end
 
-    -- GUI для XanBar
+    -- GUI для XanBar (ИСПРАВЛЕННАЯ ВЕРСИЯ)
     function SaveManager:BuildConfigSection(tab)
         assert(self.Library, "Must set SaveManager.Library")
 
@@ -368,7 +332,9 @@ do
             local success, err = self:Save(name)
             if success then
                 self.Library:Notify({ Title = "Saved", Content = "Config '" .. name .. "' saved!", Type = "Success" })
-                configList:SetOptions(self:RefreshConfigList())
+                -- Обновляем список конфигов
+                local newList = self:RefreshConfigList()
+                updateDropdownList(configList, newList)
             else
                 self.Library:Notify({ Title = "Error", Content = err, Type = "Error" })
             end
@@ -419,7 +385,9 @@ do
             local success, err = self:Delete(name)
             if success then
                 self.Library:Notify({ Title = "Deleted", Content = "Config '" .. name .. "' deleted!", Type = "Warning" })
-                configList:SetOptions(self:RefreshConfigList())
+                -- Обновляем список
+                local newList = self:RefreshConfigList()
+                updateDropdownList(configList, newList)
                 configList:Set(nil)
             else
                 self.Library:Notify({ Title = "Error", Content = err, Type = "Error" })
@@ -428,7 +396,9 @@ do
 
         -- Обновить список
         tab:AddButton("Refresh List", function()
-            configList:SetOptions(self:RefreshConfigList())
+            local newList = self:RefreshConfigList()
+            updateDropdownList(configList, newList)
+            configList:Set(nil)
         end)
 
         tab:AddDivider()
