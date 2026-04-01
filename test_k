@@ -49,10 +49,10 @@ local ESP = {
 		},
 		HealthBar = {
 			Enabled = false,
-			Width = 1,
+			Width = 0.7,
 			Height = 0,
 			Position = "Left",
-			ShowText = true,
+			ShowText = false,
 			TextSize = 8,
 			ColorLow = Color3.fromRGB(255, 0, 0),
 			ColorMid = Color3.fromRGB(255, 255, 0),
