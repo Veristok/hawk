@@ -1,12 +1,7 @@
-local cloneref = cloneref or function(o) return o end
-
-local Workspace = cloneref(game:GetService("Workspace"))
-local RunService = cloneref(game:GetService("RunService"))
-local Players = cloneref(game:GetService("Players"))
-local CoreGui = game:GetService("CoreGui")
-
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
-local Camera = Workspace.CurrentCamera
+local Camera = workspace.CurrentCamera
 
 local ESPCounter = 0
 local ActiveESPs = {}
@@ -91,7 +86,6 @@ local ESP = {
     },
 }
 
--- BONE CONNECTIONS для скелета
 local BONE_CONNECTIONS = {
     {"Head", "UpperTorso"},
     {"UpperTorso", "LowerTorso"},
@@ -108,9 +102,7 @@ local BONE_CONNECTIONS = {
 local function getPlayerHealth(character)
     if not character then return 0, 100 end
     local humanoid = character:FindFirstChild("Humanoid")
-    if humanoid then
-        return humanoid.Health, humanoid.MaxHealth
-    end
+    if humanoid then return humanoid.Health, humanoid.MaxHealth end
     return 100, 100
 end
 
@@ -134,32 +126,17 @@ local function getHealthColor(percent)
     end
 end
 
-local function hasTeamCheck(character)
-    if not ESP.Drawing.TeamCheck.Enabled then return false end
-    -- Кастомная логика проверки команды
-    return false
-end
-
 local function isValidPlayer(model)
     if not model or not model.Parent then return false end
     if model == LocalPlayer.Character then return false end
     local humanoid = model:FindFirstChild("Humanoid")
     if not humanoid or humanoid.Health <= 0 then return false end
-    local rootPart = model:FindFirstChild("HumanoidRootPart")
-    if not rootPart then return false end
-    return true
+    return model:FindFirstChild("HumanoidRootPart") ~= nil
 end
 
 local function findWeaponInCharacter(character)
     if not character then return nil end
-    local tool = character:FindFirstChildWhichIsA("Tool")
-    if tool then return tool end
-    for _, child in pairs(character:GetChildren()) do
-        if child:IsA("Tool") then
-            return child
-        end
-    end
-    return nil
+    return character:FindFirstChildWhichIsA("Tool")
 end
 
 local function getBonesFromCharacter(character)
@@ -181,18 +158,14 @@ local function createSkeletonESP(character)
     if not isValidPlayer(character) then return end
 
     local bones = getBonesFromCharacter(character)
-    local hasAllBones = true
     for _, connection in ipairs(BONE_CONNECTIONS) do
         if not bones[connection[1]] or not bones[connection[2]] then
-            hasAllBones = false
-            break
+            return
         end
     end
 
-    if not hasAllBones then return end
-
     local skeletonLines = {}
-    for _, connection in ipairs(BONE_CONNECTIONS) do
+    for _ in ipairs(BONE_CONNECTIONS) do
         local line = Drawing.new("Line")
         line.Visible = false
         line.Color = ESP.Drawing.Skeleton.RGB
@@ -210,13 +183,8 @@ local function createSkeletonESP(character)
             return
         end
 
-        if hasTeamCheck(character) then
-            for _, line in ipairs(skeletonLines) do line.Visible = false end
-            return
-        end
-
         local torso = bones["UpperTorso"] or bones["LowerTorso"]
-        if not torso or torso.Transparency >= 1 then
+        if not torso then
             for _, line in ipairs(skeletonLines) do line.Visible = false end
             return
         end
@@ -250,25 +218,12 @@ local function createSkeletonESP(character)
     skeletonData.connection = connection
 end
 
-local function FadeOutOnDist(element, distance)
-    if not element then return end
-    local transparency = math.max(0.1, 1 - (distance / ESP.MaxDistance))
-    if element:IsA("TextLabel") then
-        element.TextTransparency = 1 - transparency
-    elseif element:IsA("Frame") then
-        element.BackgroundTransparency = 1 - transparency
-    elseif element:IsA("UIStroke") then
-        element.Transparency = 1 - transparency
-    elseif element:IsA("Highlight") then
-        element.FillTransparency = 1 - transparency
-        element.OutlineTransparency = 1 - transparency
-    end
+if game:GetService("CoreGui"):FindFirstChild("ESPHolder") then
+    game:GetService("CoreGui")["ESPHolder"]:Destroy()
 end
-
-if CoreGui:FindFirstChild("ESPHolder") then CoreGui["ESPHolder"]:Destroy() end
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "ESPHolder"
-ScreenGui.Parent = CoreGui
+ScreenGui.Parent = game:GetService("CoreGui")
 
 local function CreateESP(character)
     if not character or not isValidPlayer(character) or ActiveESPs[character] then return end
@@ -279,9 +234,7 @@ local function CreateESP(character)
     ESPFolder.Parent = ScreenGui
     ActiveESPs[character] = ESPFolder
 
-    -- Name Label
     local Name = Instance.new("TextLabel")
-    Name.Name = "NameLabel"
     Name.Parent = ESPFolder
     Name.BackgroundTransparency = 1
     Name.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -291,9 +244,7 @@ local function CreateESP(character)
     Name.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
     Name.RichText = true
 
-    -- Weapon Label
     local Weapon = Instance.new("TextLabel")
-    Weapon.Name = "WeaponLabel"
     Weapon.Parent = ESPFolder
     Weapon.BackgroundTransparency = 1
     Weapon.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -303,30 +254,25 @@ local function CreateESP(character)
     Weapon.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
     Weapon.RichText = true
 
-    -- Health Bar Container
     local HealthBarContainer = Instance.new("Frame")
-    HealthBarContainer.Name = "HealthBarContainer"
     HealthBarContainer.Parent = ESPFolder
     HealthBarContainer.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     HealthBarContainer.BackgroundTransparency = 1
     HealthBarContainer.BorderSizePixel = 0
 
     local HealthBarStroke = Instance.new("UIStroke")
-    HealthBarStroke.Name = "HealthBarStroke"
     HealthBarStroke.Parent = HealthBarContainer
     HealthBarStroke.Thickness = 0.5
     HealthBarStroke.Color = Color3.fromRGB(0, 0, 0)
     HealthBarStroke.Transparency = 0.3
 
     local HealthBarFill = Instance.new("Frame")
-    HealthBarFill.Name = "HealthBarFill"
     HealthBarFill.Parent = HealthBarContainer
     HealthBarFill.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
     HealthBarFill.BackgroundTransparency = 0
     HealthBarFill.BorderSizePixel = 0
 
     local HealthBarText = Instance.new("TextLabel")
-    HealthBarText.Name = "HealthBarText"
     HealthBarText.Parent = ESPFolder
     HealthBarText.BackgroundTransparency = 1
     HealthBarText.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -335,9 +281,7 @@ local function CreateESP(character)
     HealthBarText.TextStrokeTransparency = 0
     HealthBarText.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
 
-    -- Box
     local Box = Instance.new("Frame")
-    Box.Name = "Box"
     Box.Parent = ESPFolder
     Box.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     Box.BackgroundTransparency = 0.75
@@ -365,14 +309,11 @@ local function CreateESP(character)
         ColorSequenceKeypoint.new(1, ESP.Drawing.Boxes.GradientRGB2),
     })
 
-    -- Chams
     local Chams = Instance.new("Highlight")
-    Chams.Name = "Chams"
     Chams.Parent = ESPFolder
     Chams.FillTransparency = 1
     Chams.OutlineTransparency = 0
 
-    -- Corner elements
     local cornerThickness = ESP.Drawing.Boxes.Corner.Thickness
     local cornerLength = ESP.Drawing.Boxes.Corner.Length
     
@@ -384,35 +325,20 @@ local function CreateESP(character)
     }
 
     local LeftTopHorizontal = Instance.new("Frame")
-    LeftTopHorizontal.Name = "LeftTopHorizontal"
     for k, v in pairs(cornerProps) do LeftTopHorizontal[k] = v end
-    
     local LeftTopVertical = Instance.new("Frame")
-    LeftTopVertical.Name = "LeftTopVertical"
     for k, v in pairs(cornerProps) do LeftTopVertical[k] = v end
-    
     local RightTopHorizontal = Instance.new("Frame")
-    RightTopHorizontal.Name = "RightTopHorizontal"
     for k, v in pairs(cornerProps) do RightTopHorizontal[k] = v end
-    
     local RightTopVertical = Instance.new("Frame")
-    RightTopVertical.Name = "RightTopVertical"
     for k, v in pairs(cornerProps) do RightTopVertical[k] = v end
-    
     local LeftBottomHorizontal = Instance.new("Frame")
-    LeftBottomHorizontal.Name = "LeftBottomHorizontal"
     for k, v in pairs(cornerProps) do LeftBottomHorizontal[k] = v end
-    
     local LeftBottomVertical = Instance.new("Frame")
-    LeftBottomVertical.Name = "LeftBottomVertical"
     for k, v in pairs(cornerProps) do LeftBottomVertical[k] = v end
-    
     local RightBottomHorizontal = Instance.new("Frame")
-    RightBottomHorizontal.Name = "RightBottomHorizontal"
     for k, v in pairs(cornerProps) do RightBottomHorizontal[k] = v end
-    
     local RightBottomVertical = Instance.new("Frame")
-    RightBottomVertical.Name = "RightBottomVertical"
     for k, v in pairs(cornerProps) do RightBottomVertical[k] = v end
 
     local RotationAngle = -45
@@ -453,12 +379,10 @@ local function CreateESP(character)
         if not isValidPlayer(character) then CleanupESP() return end
 
         local rootPart = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("UpperTorso")
-        if not rootPart or rootPart.Transparency >= 1 then HideESP() return end
-        
-        if hasTeamCheck(character) then HideESP() return end
+        if not rootPart then HideESP() return end
 
         local pos, onScreen = Camera:WorldToViewportPoint(rootPart.Position)
-        local dist = (Camera.CFrame.Position - rootPart.Position).Magnitude / 3.5714285714
+        local dist = (Camera.CFrame.Position - rootPart.Position).Magnitude
 
         if onScreen and dist <= ESP.MaxDistance then
             local humanoid = character:FindFirstChild("Humanoid")
@@ -471,36 +395,13 @@ local function CreateESP(character)
             local health, maxHealth = getPlayerHealth(character)
             local healthPercent = math.clamp((health / maxHealth) * 100, 0, 100)
 
-            if ESP.FadeOut.OnDistance then
-                FadeOutOnDist(Box, dist)
-                FadeOutOnDist(Outline, dist)
-                FadeOutOnDist(Name, dist)
-                FadeOutOnDist(Weapon, dist)
-                FadeOutOnDist(Chams, dist)
-                FadeOutOnDist(HealthBarContainer, dist)
-                FadeOutOnDist(HealthBarText, dist)
-                for _, frame in ipairs({LeftTopHorizontal, LeftTopVertical, RightTopHorizontal, RightTopVertical, LeftBottomHorizontal, LeftBottomVertical, RightBottomHorizontal, RightBottomVertical}) do
-                    FadeOutOnDist(frame, dist)
-                end
-            end
-
-            -- Chams
             Chams.Adornee = character
             Chams.Enabled = ESP.Drawing.Chams.Enabled
             Chams.FillColor = ESP.Drawing.Chams.FillRGB
             Chams.OutlineColor = ESP.Drawing.Chams.OutlineRGB
+            Chams.FillTransparency = ESP.Drawing.Chams.Fill_Transparency / 100
+            Chams.OutlineTransparency = ESP.Drawing.Chams.Outline_Transparency / 100
 
-            if ESP.Drawing.Chams.Thermal then
-                local breathe_effect = math.atan(math.sin(tick() * 2)) * 2 / math.pi
-                Chams.FillTransparency = (ESP.Drawing.Chams.Fill_Transparency / 100) * (1 - (breathe_effect * 0.1))
-                Chams.OutlineTransparency = ESP.Drawing.Chams.Outline_Transparency / 100
-            else
-                Chams.FillTransparency = ESP.Drawing.Chams.Fill_Transparency / 100
-                Chams.OutlineTransparency = ESP.Drawing.Chams.Outline_Transparency / 100
-            end
-            Chams.DepthMode = ESP.Drawing.Chams.VisibleCheck and Enum.HighlightDepthMode.Occluded or Enum.HighlightDepthMode.AlwaysOnTop
-
-            -- Corners
             local cornerVisible = ESP.Drawing.Boxes.Corner.Enabled
             local cColor = ESP.Drawing.Boxes.Corner.RGB
 
@@ -544,7 +445,6 @@ local function CreateESP(character)
             RightBottomVertical.Size = UDim2.new(0, cornerThickness, 0, dynamicCornerLength)
             RightBottomVertical.BackgroundColor3 = cColor
 
-            -- Box
             Box.Position = UDim2.new(0, pos.X - w / 2, 0, pos.Y - h / 2 + verticalOffset)
             Box.Size = UDim2.new(0, w, 0, h)
 
@@ -555,7 +455,6 @@ local function CreateESP(character)
             Box.BackgroundTransparency = filled and ESP.Drawing.Boxes.Filled.Transparency or 1
             Outline.Enabled = full and ESP.Drawing.Boxes.Gradient
 
-            -- Health Bar
             if ESP.Drawing.HealthBar.Enabled then
                 local barWidth = ESP.Drawing.HealthBar.Width
                 local barPosition = ESP.Drawing.HealthBar.Position
@@ -584,45 +483,11 @@ local function CreateESP(character)
                 HealthBarText.Visible = false
             end
 
-            -- Animated Gradient
             local currentTick = tick()
             local deltaTime = currentTick - LastTick
-            RotationAngle = RotationAngle + deltaTime * ESP.Drawing.Boxes.RotationSpeed * math.cos(math.pi / 4 * currentTick - math.pi / 2)
-            if ESP.Drawing.Boxes.Animate then
-                Gradient1.Rotation = RotationAngle
-                Gradient2.Rotation = RotationAngle
-            end
-            LastTick = currentTick
+            RotationAngle = RotationAngle + deltaTime * ESP.Drawing.Boxes.RotationSpeed * math.cos(math.pi / 4 * currentTick - math.pi /
 
-            -- Name
-            Name.Visible = ESP.Drawing.Names.Enabled
-            local nameText = character.Name
-            if ESP.Drawing.Distances.Enabled then
-                nameText = string.format("%s [%dm]", nameText, math.floor(dist))
-            end
-            Name.Text = nameText
-            Name.TextColor3 = ESP.Drawing.Names.RGB
-            Name.Position = UDim2.new(0, pos.X, 0, pos.Y - h / 2 - 9 + verticalOffset)
-            Name.Size = UDim2.new(0, 200, 0, 20)
-            Name.AnchorPoint = Vector2.new(0.5, 0.5)
-
-            -- Weapon
-            Weapon.Visible = ESP.Drawing.Weapons.Enabled
-            if ESP.Drawing.Weapons.Enabled then
-                local weapon = findWeaponInCharacter(character)
-                if weapon then
-                    Weapon.Text = weapon.Name
-                    Weapon.TextColor3 = ESP.Drawing.Weapons.RGB
-                    Weapon.Position = UDim2.new(0, pos.X, 0, pos.Y + h / 2 + 9 + verticalOffset)
-                    Weapon.Size = UDim2.new(0, 200, 0, 20)
-                    Weapon.AnchorPoint = Vector2.new(0.5, 0.5)
-                else
-                    Weapon.Visible = false
-                end
-            end
-
-            -- Skeleton
-            if ESP.Drawing.Skeleton.Enabled and not ActiveSkeletons[character] then
+if ESP.Drawing.Skeleton.Enabled and not ActiveSkeletons[character] then
                 createSkeletonESP(character)
             end
         else
@@ -631,7 +496,7 @@ local function CreateESP(character)
     end)
 end
 
--- Мониторинг игроков (не Viewmodels!)
+-- Мониторинг обычных игроков (не Viewmodels)
 local function MonitorPlayers()
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer then
@@ -643,77 +508,19 @@ local function MonitorPlayers()
                 task.wait(0.2)
                 CreateESP(character)
             end)
-            player.CharacterRemoving:Connect(function()
-                if ActiveESPs[player.Character] then
-                    ActiveESPs[player.Character]:Destroy()
-                    ActiveESPs[player.Character] = nil
-                end
-            end)
         end
     end
     
     Players.PlayerAdded:Connect(function(player)
-        player.CharacterAdded:Connect(function(character)
-            task.wait(0.2)
-            CreateESP(character)
-        end)
+        if player ~= LocalPlayer then
+            player.CharacterAdded:Connect(function(character)
+                task.wait(0.2)
+                CreateESP(character)
+            end)
+        end
     end)
 end
 
 MonitorPlayers()
-
--- API для управления ESP
-ESP.RefreshESPs = function()
-    for _, espFolder in pairs(ActiveESPs) do espFolder:Destroy() end
-    ActiveESPs = {}
-    MonitorPlayers()
-end
-
-ESP.CleanAllESPs = function()
-    for _, espFolder in pairs(ActiveESPs) do espFolder:Destroy() end
-    ActiveESPs = {}
-    for _, skeletonData in pairs(ActiveSkeletons) do
-        for _, line in ipairs(skeletonData.lines) do line:Remove() end
-        if skeletonData.connection then skeletonData.connection:Disconnect() end
-    end
-    ActiveSkeletons = {}
-end
-
-ESP.ToggleSkeleton = function(enabled)
-    ESP.Drawing.Skeleton.Enabled = enabled
-    if not enabled then
-        for _, skeletonData in pairs(ActiveSkeletons) do
-            for _, line in ipairs(skeletonData.lines) do line.Visible = false end
-        end
-    end
-end
-
-ESP.SetSkeletonColor = function(color)
-    if typeof(color) == "Color3" then
-        ESP.Drawing.Skeleton.RGB = color
-        for _, skeletonData in pairs(ActiveSkeletons) do
-            for _, line in ipairs(skeletonData.lines) do line.Color = color end
-        end
-    end
-end
-
-ESP.SetSkeletonThickness = function(thickness)
-    if type(thickness) == "number" and thickness > 0 then
-        ESP.Drawing.Skeleton.Thickness = thickness
-        for _, skeletonData in pairs(ActiveSkeletons) do
-            for _, line in ipairs(skeletonData.lines) do line.Thickness = thickness end
-        end
-    end
-end
-
-ESP.ToggleHealthBar = function(enabled) ESP.Drawing.HealthBar.Enabled = enabled end
-ESP.SetHealthBarWidth = function(width) if type(width) == "number" then ESP.Drawing.HealthBar.Width = width end end
-ESP.SetHealthBarPosition = function(position) if position == "Left" or position == "Right" then ESP.Drawing.HealthBar.Position = position end end
-ESP.ToggleHealthBarText = function(enabled) ESP.Drawing.HealthBar.ShowText = enabled end
-ESP.SetHealthColors = function(low, mid, high)
-    if low then ESP.Drawing.HealthBar.ColorLow = low end
-    if mid then ESP.Drawing.HealthBar.ColorMid = mid end
-    if high then ESP.Drawing.HealthBar.ColorHigh = high end
-end
 
 return ESP
