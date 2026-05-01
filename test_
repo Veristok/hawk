@@ -95,24 +95,34 @@ local ESP = {
 }
 
 local function getPlayerHealth(character)
-	if not character then
-		return 0, 100
-	end
-	
-	local humanoid = character:FindFirstChild("Humanoid")
-	if humanoid then
-		local health = humanoid.Health
-		local maxHealth = humanoid.MaxHealth
-		return health, maxHealth
-	end
-	
-	local healthAttr = character:GetAttribute("Health")
-	local maxHealthAttr = character:GetAttribute("MaxHealth")
-	if healthAttr and maxHealthAttr then
-		return healthAttr, maxHealthAttr
-	end
-	
-	return 100, 100
+    if not character then
+        return 0, 100
+    end
+    
+    
+    local player = Players:FindFirstChild(character.Name)
+    if player then
+        local healthScript = player:FindFirstChild("Health")
+        if healthScript then
+            
+            if healthScript:IsA("NumberValue") then
+                return healthScript.Value, 100
+            end
+            
+            local health = player:GetAttribute("Health")
+            local maxHealth = player:GetAttribute("MaxHealth")
+            if health and maxHealth then
+                return health, maxHealth
+            end
+        end
+    end
+    
+    local humanoid = character:FindFirstChild("Humanoid")
+    if humanoid then
+        return humanoid.Health, humanoid.MaxHealth
+    end
+    
+    return 100, 100
 end
 
 local function getHealthColor(percent)
