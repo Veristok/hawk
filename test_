@@ -99,18 +99,12 @@ local function getPlayerHealth(character)
         return 0, 100
     end
     
-    -- Просто берем Humanoid, как в рабочем коде
-    local humanoid = character:FindFirstChild("Humanoid")
+    local player = game:GetService("Players"):FindFirstChild(character.Name)
+    local realChar = (player and player.Character) or character
+    
+    local humanoid = realChar:FindFirstChild("Humanoid")
     if humanoid then
-        local health = humanoid.Health
-        local maxHealth = humanoid.MaxHealth
-        
-        -- Проверка на смерть
-        if health <= 0 then
-            return 0, maxHealth
-        end
-        
-        return health, maxHealth
+        return humanoid.Health, humanoid.MaxHealth
     end
     
     return 100, 100
