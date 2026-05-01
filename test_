@@ -241,16 +241,22 @@ local function isValidPlayer(model)
 	return true
 end
 
-local function findWeaponInCharacter(character)
-	if not character then
-		return nil
-	end
-	for _, child in pairs(character:GetChildren()) do
-		if child:IsA("Model") and child:GetAttribute("item_type") then
-			return child
-		end
-	end
-	return nil
+local function findCharacter(player)
+    local viewmodels = workspace:FindFirstChild("Viewmodels")
+    if not viewmodels then return nil end
+
+    for _,model in ipairs(viewmodels:GetChildren()) do
+        if model:IsA("Model") and model.Name == player.Name then
+            local hum = model:FindFirstChildOfClass("Humanoid")
+            local root = model:FindFirstChild("torso") or model:FindFirstChild("HumanoidRootPart")
+
+            if hum and root then
+                return model, hum, root
+            end
+        end
+    end
+
+    return nil
 end
 
 local function createSkeletonESP(character)
