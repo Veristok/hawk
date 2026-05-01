@@ -98,16 +98,13 @@ local function getPlayerHealth(character)
     if not character then
         return 0, 100
     end
-    
-    local player = game:GetService("Players"):FindFirstChild(character.Name)
-    local realChar = (player and player.Character) or character
-    
-    local humanoid = realChar:FindFirstChild("Humanoid")
+
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
     if humanoid then
         return humanoid.Health, humanoid.MaxHealth
     end
-    
-    return 100, 100
+
+    return 0, 100
 end
 
 local function getHealthColor(percent)
