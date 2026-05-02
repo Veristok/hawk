@@ -94,26 +94,30 @@ local ESP = {
 	},
 }
 
-local function getPlayerHealth(character)
-    -- ищем реальную модель игрока в workspace
-    local realModel = workspace:FindFirstChild(character.Name)
-    if not realModel then
-        return 0, 100
+local function findCharacter(player)
+    local chosenModel, chosenHum, chosenRoot
+
+    for _,model in ipairs(workspace:GetChildren()) do
+        if model:IsA("Model") and model.Name == player.Name then
+            
+            local hum = model:FindFirstChildOfClass("Humanoid")
+            local root = model:FindFirstChild("HumanoidRootPart") or model:FindFirstChild("torso")
+
+            if hum and root then
+                -- живого - берём сразу
+                if hum.Health > 0 then
+                    return model, hum, root
+                end
+
+                -- запоминаем как запасной
+                chosenModel = model
+                chosenHum = hum
+                chosenRoot = root
+            end
+        end
     end
 
-    -- пробуем найти Humanoid
-    local humanoid = realModel:FindFirstChildOfClass("Humanoid")
-    if humanoid then
-        return humanoid.Health, humanoid.MaxHealth
-    end
-
-    -- или кастомный Health
-    local health = realModel:FindFirstChild("Health")
-    if health and health:IsA("NumberValue") then
-        return health.Value, 100
-    end
-
-    return 0, 100
+    return chosenModel, chosenHum, chosenRoot
 end
 
 local function getHealthColor(percent)
