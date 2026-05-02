@@ -99,6 +99,19 @@ local function getPlayerHealth(character)
         return 0, 100
     end
 
+    -- Ищем объект Health внутри модели игрока
+    local healthPart = character:FindFirstChild("Health")
+    if healthPart and healthPart:IsA("BasePart") then
+        -- Здоровье может быть в атрибуте или свойстве
+        local health = healthPart:GetAttribute("Health") or healthPart:GetAttribute("Value") or healthPart.Value
+        local maxHealth = healthPart:GetAttribute("MaxHealth") or healthPart:GetAttribute("MaxValue") or 100
+        
+        if type(health) == "number" and health > 0 then
+            return health, maxHealth
+        end
+    end
+
+    -- Запасной вариант: проверить Humanoid (на случай, если он есть)
     local humanoid = character:FindFirstChildOfClass("Humanoid")
     if humanoid then
         return humanoid.Health, humanoid.MaxHealth
