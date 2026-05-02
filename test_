@@ -37,7 +37,10 @@ local ESP = {
 		Names = {
 			Enabled = false,
 			RGB = Color3.fromRGB(255, 255, 255),
-		},
+        Health = {
+	Enabled = false,
+	RGB = Color3.fromRGB(255, 80, 80),
+},
 		Distances = {
 			Enabled = false,
 			Position = "Text",
@@ -365,6 +368,21 @@ local function CreateESP(CharacterModel)
 		RichText = true,
 	})
 
+local Health = Functions:Create("TextLabel", {
+	Parent = ESPFolder,
+	Name = "HealthLabel",
+	Position = UDim2.new(0.5, 0, 0, 0),
+	Size = UDim2.new(0, 100, 0, 20),
+	AnchorPoint = Vector2.new(0.5, 0.5),
+	BackgroundTransparency = 1,
+	TextColor3 = Color3.fromRGB(255, 80, 80),
+	Font = Enum.Font.Code,
+	TextSize = ESP.FontSize,
+	TextStrokeTransparency = 0,
+	TextStrokeColor3 = Color3.fromRGB(0, 0, 0),
+	RichText = true,
+})
+
 	local Box = Functions:Create("Frame", {
 		Parent = ESPFolder,
 		Name = "Box",
@@ -466,6 +484,7 @@ local function CreateESP(CharacterModel)
 		RightBottomHorizontal.Visible = false
 		RightBottomVertical.Visible = false
 		Chams.Enabled = false
+Health.Visible = false
 	end
 
 	local Connection
@@ -647,6 +666,26 @@ Outline.Enabled = full and ESP.Drawing.Boxes.Gradient
 					Weapon.Visible = false
 				end
 			end
+
+Health.Visible = ESP.Drawing.Health.Enabled
+if ESP.Drawing.Health.Enabled then
+	local humanoid = CharacterModel:FindFirstChild("Humanoid")
+	if humanoid then
+		local health = math.floor(humanoid.Health)
+		local maxHealth = humanoid.MaxHealth or 100
+		local healthPercent = health / maxHealth
+		
+		local r = 255
+		local g = math.floor(255 * healthPercent)
+		local b = math.floor(255 * healthPercent)
+		
+		Health.Text = string.format("❤️ %d / %d", health, maxHealth)
+		Health.TextColor3 = Color3.fromRGB(r, g, b)
+		Health.Position = UDim2.new(0, Pos.X, 0, Pos.Y + h/2 + 24 + verticalOffset)
+	else
+		Health.Visible = false
+	end
+end
 
 			if ESP.Drawing.Skeleton.Enabled and not ActiveSkeletons[CharacterModel] then
 				createSkeletonESP(CharacterModel)
