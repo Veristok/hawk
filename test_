@@ -107,6 +107,19 @@ local function getPlayerHealth(character)
     return 0, 100
 end
 
+local function findCharacter(player)
+	for _,model in ipairs(workspace:GetChildren()) do
+		if model:IsA("Model") and model.Name == player.Name then
+			local hum = model:FindFirstChildOfClass("Humanoid")
+			local root = model:FindFirstChild("HumanoidRootPart")
+			if hum and root then
+				return model, hum, root
+			end
+		end
+	end
+	return nil
+end
+
 local function getHealthColor(percent)
 	if percent >= 70 then
 		return ESP.Drawing.HealthBar.ColorHigh
