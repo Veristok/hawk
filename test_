@@ -37,10 +37,10 @@ local ESP = {
 		Names = {
 			Enabled = false,
 			RGB = Color3.fromRGB(255, 255, 255),
-        Health = {
-	Enabled = false,
-	RGB = Color3.fromRGB(255, 80, 80),
-},
+        Health = {          
+        Enabled = false,
+        RGB = Color3.fromRGB(255, 80, 80),
+    },
 		Distances = {
 			Enabled = false,
 			Position = "Text",
