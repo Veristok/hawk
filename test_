@@ -100,7 +100,7 @@ local function getPlayerHealth(character)
     end
 
     local humanoid = character:FindFirstChildOfClass("Humanoid")
-    if humanoid then
+    if humanoid and humanoid.Health then
         return humanoid.Health, humanoid.MaxHealth
     end
 
