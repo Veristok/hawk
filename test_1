@@ -48,7 +48,7 @@ local ESP = {
 			RGB = Color3.fromRGB(255, 255, 255),
 		},
 		HealthBar = {
-			Enabled = false,
+			Enabled = true,
 			Thickness = 4,
 			Position = "Left",
 		},
@@ -361,7 +361,7 @@ local function CreateESP(CharacterModel)
 	local ESPFolder = Functions:Create("Folder", { Parent = ScreenGui, Name = GuiName })
 	ActiveESPs[CharacterModel] = ESPFolder
 
-local Name = Functions:Create("TextLabel", {
+	local Name = Functions:Create("TextLabel", {
 		Parent = ESPFolder,
 		Name = "NameLabel",
 		Position = UDim2.new(0.5, 0, 0, -11),
@@ -472,13 +472,14 @@ local Name = Functions:Create("TextLabel", {
 	RightBottomHorizontal.Name = "RightBottomHorizontal"
 	RightBottomHorizontal.Size = UDim2.new(0, cornerLength, 0, cornerThickness)
 
-	local RightBottomVertical = Functions:Create("Frame", cornerProps)
+local RightBottomVertical = Functions:Create("Frame", cornerProps)
 	RightBottomVertical.Name = "RightBottomVertical"
 	RightBottomVertical.Size = UDim2.new(0, cornerThickness, 0, cornerLength)
 
 	local RotationAngle = -45
 	local LastTick = tick()
 	
+	-- Создаем Drawing Health Bar
 	local healthBar = Drawing.new("Line")
 	healthBar.Thickness = ESP.Drawing.HealthBar.Thickness
 	healthBar.Visible = false
@@ -555,12 +556,8 @@ local Name = Functions:Create("TextLabel", {
 			local verticalOffset = h * 0.175
 			local dynamicCornerLength = math.min(cornerLength, w * 0.2, h * 0.2)
 
+			-- Получаем здоровье из Humanoid
 			local humanoid = CharacterModel:FindFirstChild("Humanoid")
-			local healthPercent = 100
-			if humanoid then
-				healthPercent = (humanoid.Health / humanoid.MaxHealth) * 100
-			end
-			healthPercent = math.clamp(healthPercent, 0, 100)
 			
 			if ESP.FadeOut.OnDistance then
 				Functions:FadeOutOnDist(Box, Dist)
@@ -650,6 +647,7 @@ local Name = Functions:Create("TextLabel", {
 
 			Outline.Enabled = full and ESP.Drawing.Boxes.Gradient
 
+			-- DRAWING HEALTH BAR (теперь точно работает)
 			if ESP.Drawing.HealthBar.Enabled and humanoid then
 				local boxTopY = Pos.Y - h / 2 + verticalOffset
 				local boxBottomY = Pos.Y + h / 2 + verticalOffset
@@ -660,9 +658,9 @@ local Name = Functions:Create("TextLabel", {
 				
 				local barX
 				if ESP.Drawing.HealthBar.Position == "Left" then
-					barX = Pos.X - w / 2 - 8
+					barX = Pos.X - w / 2 - 6
 				else
-					barX = Pos.X + w / 2 + 8
+					barX = Pos.X + w / 2 + 4
 				end
 				
 				healthBar.From = Vector2.new(barX, boxBottomY)
@@ -702,7 +700,7 @@ local Name = Functions:Create("TextLabel", {
 				nameText = string.format("%s [%d]", nameText, math.floor(Dist))
 			end
 
-			Name.Text = string.format('(<font color="rgb(%d, %d, %d)">T</font>) %s', 255, 255, 255, nameText)
+			Name.Text = nameText
 			Name.TextColor3 = ESP.Drawing.Names.RGB
 			Name.Position = UDim2.new(0, Pos.X, 0, Pos.Y - h / 2 - 9 + verticalOffset)
 
@@ -853,11 +851,22 @@ end
 
 ESP.ToggleHealthBar = function(enabled)
 	ESP.Drawing.HealthBar.Enabled = enabled
+	-- Принудительно обновляем видимость всех баров
+	for _, bar in pairs(ActiveDrawingBars) do
+		if bar then
+			bar.Visible = enabled
+		end
+	end
 end
 
 ESP.SetHealthBarThickness = function(thickness)
 	if type(thickness) == "number" and thickness > 0 then
 		ESP.Drawing.HealthBar.Thickness = thickness
+		for _, bar in pairs(ActiveDrawingBars) do
+			if bar then
+				bar.Thickness = thickness
+			end
+		end
 	end
 end
 
