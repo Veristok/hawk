@@ -155,7 +155,6 @@ function Functions:CleanAllSkeletons()
 			for _, line in ipairs(skeletonData.lines) do
 				if line then
 					line.Visible = false
-					line:Destroy()
 				end
 			end
 			if skeletonData.connection then
@@ -170,7 +169,6 @@ function Functions:CleanDrawingBars()
 	for _, bar in pairs(ActiveDrawingBars) do
 		if bar then
 			bar.Visible = false
-			bar:Destroy()
 		end
 	end
 	ActiveDrawingBars = {}
@@ -183,7 +181,7 @@ function Functions:RemoveSkeleton(character)
 	end
 	for _, line in ipairs(skeletonData.lines) do
 		if line then
-			line:Destroy()
+			line.Visible = false
 		end
 	end
 	if skeletonData.connection then
@@ -363,7 +361,7 @@ local function CreateESP(CharacterModel)
 	local ESPFolder = Functions:Create("Folder", { Parent = ScreenGui, Name = GuiName })
 	ActiveESPs[CharacterModel] = ESPFolder
 
-	local Name = Functions:Create("TextLabel", {
+local Name = Functions:Create("TextLabel", {
 		Parent = ESPFolder,
 		Name = "NameLabel",
 		Position = UDim2.new(0.5, 0, 0, -11),
@@ -418,7 +416,7 @@ local function CreateESP(CharacterModel)
 		LineJoinMode = Enum.LineJoinMode.Miter,
 	})
 
-local Gradient2 = Functions:Create("UIGradient", {
+	local Gradient2 = Functions:Create("UIGradient", {
 		Parent = Outline,
 		Enabled = ESP.Drawing.Boxes.Gradient,
 		Color = ColorSequence.new({
@@ -514,7 +512,6 @@ local Gradient2 = Functions:Create("UIGradient", {
 		end
 		if healthBar then
 			healthBar.Visible = false
-			healthBar:Destroy()
 		end
 		ActiveESPs[CharacterModel] = nil
 		ActiveDrawingBars[CharacterModel] = nil
@@ -777,7 +774,7 @@ local function MonitorViewmodels()
 			ActiveESPs[v] = nil
 		end
 		if ActiveDrawingBars[v] then
-			ActiveDrawingBars[v]:Destroy()
+			ActiveDrawingBars[v].Visible = false
 			ActiveDrawingBars[v] = nil
 		end
 		Functions:RemoveSkeleton(v)
