@@ -48,7 +48,7 @@ local ESP = {
 			RGB = Color3.fromRGB(255, 255, 255),
 		},
 		HealthBar = {
-			Enabled = true,
+			Enabled = false,
 			Thickness = 4,
 			Position = "Left",
 		},
