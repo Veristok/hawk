@@ -5,7 +5,6 @@ end
 local Workspace = cloneref(game:GetService("Workspace"))
 local RunService = cloneref(game:GetService("RunService"))
 local Players = cloneref(game:GetService("Players"))
-local Lighting = cloneref(game:GetService("Lighting"))
 local CoreGui = game:GetService("CoreGui")
 
 local LocalPlayer = Players.LocalPlayer
@@ -156,7 +155,7 @@ function Functions:CleanAllSkeletons()
 			for _, line in ipairs(skeletonData.lines) do
 				if line then
 					line.Visible = false
-					line:Remove()
+					line:Destroy()
 				end
 			end
 			if skeletonData.connection then
@@ -171,7 +170,7 @@ function Functions:CleanDrawingBars()
 	for _, bar in pairs(ActiveDrawingBars) do
 		if bar then
 			bar.Visible = false
-			bar:Remove()
+			bar:Destroy()
 		end
 	end
 	ActiveDrawingBars = {}
@@ -184,7 +183,7 @@ function Functions:RemoveSkeleton(character)
 	end
 	for _, line in ipairs(skeletonData.lines) do
 		if line then
-			line:Remove()
+			line:Destroy()
 		end
 	end
 	if skeletonData.connection then
@@ -419,7 +418,7 @@ local function CreateESP(CharacterModel)
 		LineJoinMode = Enum.LineJoinMode.Miter,
 	})
 
-	local Gradient2 = Functions:Create("UIGradient", {
+local Gradient2 = Functions:Create("UIGradient", {
 		Parent = Outline,
 		Enabled = ESP.Drawing.Boxes.Gradient,
 		Color = ColorSequence.new({
@@ -475,14 +474,13 @@ local function CreateESP(CharacterModel)
 	RightBottomHorizontal.Name = "RightBottomHorizontal"
 	RightBottomHorizontal.Size = UDim2.new(0, cornerLength, 0, cornerThickness)
 
-local RightBottomVertical = Functions:Create("Frame", cornerProps)
+	local RightBottomVertical = Functions:Create("Frame", cornerProps)
 	RightBottomVertical.Name = "RightBottomVertical"
 	RightBottomVertical.Size = UDim2.new(0, cornerThickness, 0, cornerLength)
 
 	local RotationAngle = -45
 	local LastTick = tick()
 	
-	-- Создаем Drawing Health Bar
 	local healthBar = Drawing.new("Line")
 	healthBar.Thickness = ESP.Drawing.HealthBar.Thickness
 	healthBar.Visible = false
@@ -516,7 +514,7 @@ local RightBottomVertical = Functions:Create("Frame", cornerProps)
 		end
 		if healthBar then
 			healthBar.Visible = false
-			healthBar:Remove()
+			healthBar:Destroy()
 		end
 		ActiveESPs[CharacterModel] = nil
 		ActiveDrawingBars[CharacterModel] = nil
@@ -655,10 +653,7 @@ local RightBottomVertical = Functions:Create("Frame", cornerProps)
 
 			Outline.Enabled = full and ESP.Drawing.Boxes.Gradient
 
-			-- Drawing Health Bar точь-в-точь по высоте бокса
-			local healthBarEnabled = ESP.Drawing.HealthBar.Enabled
-			
-			if healthBarEnabled and humanoid then
+			if ESP.Drawing.HealthBar.Enabled and humanoid then
 				local boxTopY = Pos.Y - h / 2 + verticalOffset
 				local boxBottomY = Pos.Y + h / 2 + verticalOffset
 				local boxHeight = h
@@ -782,7 +777,7 @@ local function MonitorViewmodels()
 			ActiveESPs[v] = nil
 		end
 		if ActiveDrawingBars[v] then
-			ActiveDrawingBars[v]:Remove()
+			ActiveDrawingBars[v]:Destroy()
 			ActiveDrawingBars[v] = nil
 		end
 		Functions:RemoveSkeleton(v)
