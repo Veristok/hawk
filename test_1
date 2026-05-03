@@ -90,22 +90,34 @@ local ESP = {
 	},
 }
 
+-- ЗАМЕНИТЕ ФУНКЦИЮ getPlayerHealth НА ЭТУ:
+
 local function getPlayerHealth(character)
 	if not character then
-		return 0, 100
+		return 100, 100
 	end
 	
-	local humanoid = character:FindFirstChild("Humanoid")
+	-- Ищем Humanoid в персонаже (как в рабочем ESP)
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
 	if humanoid then
 		local health = humanoid.Health
 		local maxHealth = humanoid.MaxHealth
-		return health, maxHealth
+		if health > 0 then
+			return health, maxHealth
+		end
 	end
 	
-	local healthAttr = character:GetAttribute("Health")
-	local maxHealthAttr = character:GetAttribute("MaxHealth")
-	if healthAttr and maxHealthAttr then
-		return healthAttr, maxHealthAttr
+	-- Если не нашли Humanoid, пробуем найти через Players (как в рабочем ESP)
+	local playerName = character.Name
+	local player = Players:FindFirstChild(playerName)
+	if player then
+		local char = player.Character
+		if char then
+			local hum = char:FindFirstChildOfClass("Humanoid")
+			if hum then
+				return hum.Health, hum.MaxHealth
+			end
+		end
 	end
 	
 	return 100, 100
