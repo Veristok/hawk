@@ -94,25 +94,17 @@ local ESP = {
 	},
 }
 
--- ПРЯМОЕ ПОЛУЧЕНИЕ ЦВЕТА ЗДОРОВЬЯ (как в твоём рабочем примере)
+-- ТОЧЬ-В-ТОЧЬ ФУНКЦИЯ ЦВЕТА ИЗ ТВОЕГО ПРИМЕРА
 local function getHealthColor(percent)
-	if percent >= 70 then
-		return ESP.Drawing.HealthBar.ColorHigh
-	elseif percent >= 30 then
-		local t = (percent - 30) / 40
-		return Color3.new(
-			ESP.Drawing.HealthBar.ColorHigh.R * t + ESP.Drawing.HealthBar.ColorMid.R * (1 - t),
-			ESP.Drawing.HealthBar.ColorHigh.G * t + ESP.Drawing.HealthBar.ColorMid.G * (1 - t),
-			ESP.Drawing.HealthBar.ColorHigh.B * t + ESP.Drawing.HealthBar.ColorMid.B * (1 - t)
-		)
-	else
-		local t = percent / 30
-		return Color3.new(
-			ESP.Drawing.HealthBar.ColorMid.R * t + ESP.Drawing.HealthBar.ColorLow.R * (1 - t),
-			ESP.Drawing.HealthBar.ColorMid.G * t + ESP.Drawing.HealthBar.ColorLow.G * (1 - t),
-			ESP.Drawing.HealthBar.ColorMid.B * t + ESP.Drawing.HealthBar.ColorLow.B * (1 - t)
-		)
-	end
+    if percent >= 70 then
+        return Color3.fromRGB(0, 255, 0)
+    elseif percent >= 30 then
+        local t = (percent - 30) / 40
+        return Color3.new(1, t, 0)
+    else
+        local t = percent / 30
+        return Color3.new(1, t * 0.5, 0)
+    end
 end
 
 local BONE_CONNECTIONS = {
@@ -455,7 +447,7 @@ local function CreateESP(CharacterModel)
 		}),
 	})
 
-	local Outline = Functions:Create("UIStroke", {
+local Outline = Functions:Create("UIStroke", {
 		Parent = Box,
 		Enabled = ESP.Drawing.Boxes.Gradient,
 		Transparency = 0,
@@ -481,7 +473,7 @@ local function CreateESP(CharacterModel)
 		DepthMode = "AlwaysOnTop",
 	})
 
-local cornerThickness = ESP.Drawing.Boxes.Corner.Thickness
+	local cornerThickness = ESP.Drawing.Boxes.Corner.Thickness
 	local cornerLength = ESP.Drawing.Boxes.Corner.Length
 	local cornerProps = {
 		Parent = ESPFolder,
@@ -592,13 +584,17 @@ local cornerThickness = ESP.Drawing.Boxes.Corner.Thickness
 			local verticalOffset = h * 0.175
 			local dynamicCornerLength = math.min(cornerLength, w * 0.2, h * 0.2)
 
-			-- ПРЯМОЕ ПОЛУЧЕНИЕ ЗДОРОВЬЯ ЧЕРЕЗ HUMANODOT (БЕЗ ВСЯКОЙ ХУЙНИ)
-			local humanoid = CharacterModel:FindFirstChild("Humanoid")
-			local healthPercent = 100
-			if humanoid then
-				healthPercent = (humanoid.Health / humanoid.MaxHealth) * 100
+			-- ТОЧЬ-В-ТОЧЬ ОПРЕДЕЛЕНИЕ ЗДОРОВЬЯ ИЗ ТВОЕГО ПРИМЕРА
+			local hum = CharacterModel:FindFirstChildOfClass("Humanoid")
+			local humTorso = CharacterModel:FindFirstChild("torso")
+			local hp = 1
+			
+			if hum and humTorso and hum.Health > 0 then
+				hp = hum.Health / hum.MaxHealth
 			end
-			healthPercent = math.clamp(healthPercent, 0, 100)
+			
+			local healthPercent = hp * 100
+			local healthPercentClamped = math.clamp(healthPercent, 0, 100)
 			
 			if ESP.FadeOut.OnDistance then
 				Functions:FadeOutOnDist(Box, Dist)
@@ -690,7 +686,7 @@ local cornerThickness = ESP.Drawing.Boxes.Corner.Thickness
 
 			Outline.Enabled = full and ESP.Drawing.Boxes.Gradient
 
-			-- Health Bar (ПОЛНОСТЬЮ РАБОЧАЯ)
+			-- Health Bar
 			local healthBarEnabled = ESP.Drawing.HealthBar.Enabled
 			
 			if healthBarEnabled then
@@ -710,13 +706,13 @@ local cornerThickness = ESP.Drawing.Boxes.Corner.Thickness
 				HealthBarContainer.Visible = true
 				HealthBarContainer.Position = UDim2.new(0, healthBarX, 0, healthBarY)
 				HealthBarContainer.Size = UDim2.new(0, barWidth, 0, healthBarHeight)
-				HealthBarFill.Size = UDim2.new(1, 0, healthPercent / 100, 0)
-				HealthBarFill.Position = UDim2.new(0, 0, 1 - (healthPercent / 100), 0)
-				HealthBarFill.BackgroundColor3 = getHealthColor(healthPercent)
+				HealthBarFill.Size = UDim2.new(1, 0, healthPercentClamped / 100, 0)
+				HealthBarFill.Position = UDim2.new(0, 0, 1 - (healthPercentClamped / 100), 0)
+				HealthBarFill.BackgroundColor3 = getHealthColor(healthPercentClamped)
 				
 				if ESP.Drawing.HealthBar.ShowText then
 					HealthBarText.Visible = true
-					HealthBarText.Text = string.format("%.0f%%", healthPercent)
+					HealthBarText.Text = string.format("%.0f%%", healthPercentClamped)
 					HealthBarText.TextSize = ESP.Drawing.HealthBar.TextSize
 					local textX = healthBarX + barWidth / 2
 					local textY = healthBarY + healthBarHeight / 2
