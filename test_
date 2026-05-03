@@ -94,27 +94,6 @@ local ESP = {
 	},
 }
 
-local function getPlayerHealth(character)
-	if not character then
-		return 0, 100
-	end
-	
-	local humanoid = character:FindFirstChild("Humanoid")
-	if humanoid then
-		local health = humanoid.Health
-		local maxHealth = humanoid.MaxHealth
-		return health, maxHealth
-	end
-	
-	local healthAttr = character:GetAttribute("Health")
-	local maxHealthAttr = character:GetAttribute("MaxHealth")
-	if healthAttr and maxHealthAttr then
-		return healthAttr, maxHealthAttr
-	end
-	
-	return 100, 100
-end
-
 local function getHealthColor(percent)
 	if percent >= 70 then
 		return ESP.Drawing.HealthBar.ColorHigh
@@ -613,9 +592,16 @@ local LeftBottomVertical = Functions:Create("Frame", cornerProps)
 			local verticalOffset = h * 0.175
 			local dynamicCornerLength = math.min(cornerLength, w * 0.2, h * 0.2)
 
-			local health, maxHealth = getPlayerHealth(CharacterModel)
-			local healthPercent = (health / maxHealth) * 100
-			local healthPercentClamped = math.clamp(healthPercent, 0, 100)
+			local humanoid = CharacterModel:FindFirstChildOfClass("Humanoid")
+
+if not humanoid or humanoid.Health <= 0 then
+	HealthBarContainer.Visible = false
+	HealthBarText.Visible = false
+	return
+end
+
+local hp = humanoid.Health / humanoid.MaxHealth
+local healthPercentClamped = math.clamp(hp * 100, 0, 100)
 			
 			if ESP.FadeOut.OnDistance then
 				Functions:FadeOutOnDist(Box, Dist)
@@ -729,7 +715,11 @@ local LeftBottomVertical = Functions:Create("Frame", cornerProps)
 				HealthBarContainer.Size = UDim2.new(0, barWidth, 0, healthBarHeight)
 				HealthBarFill.Size = UDim2.new(1, 0, healthPercentClamped / 100, 0)
 				HealthBarFill.Position = UDim2.new(0, 0, 1 - (healthPercentClamped / 100), 0)
-				HealthBarFill.BackgroundColor3 = getHealthColor(healthPercentClamped)
+				HealthBarFill.BackgroundColor3 = Color3.fromRGB(
+	255 - (255 * hp),
+	255 * hp,
+	0
+)
 				
 				if ESP.Drawing.HealthBar.ShowText then
 					HealthBarText.Visible = true
