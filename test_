@@ -99,17 +99,35 @@ local function getPlayerHealth(character)
 		return 0, 100
 	end
 	
-	local humanoid = character:FindFirstChild("Humanoid")
-	if humanoid then
-		local health = humanoid.Health
-		local maxHealth = humanoid.MaxHealth
-		return health, maxHealth
+	-- Прямой поиск объекта Health внутри персонажа
+	local healthObject = character:FindFirstChild("Health")
+	if healthObject then
+		-- Проверяем тип (NumberValue или IntValue)
+		if healthObject:IsA("NumberValue") or healthObject:IsA("IntValue") then
+			local health = healthObject.Value
+			
+			-- Попытка найти MaxHealth
+			local maxHealthObject = character:FindFirstChild("MaxHealth")
+			local maxHealth = 100
+			
+			if maxHealthObject and (maxHealthObject:IsA("NumberValue") or maxHealthObject:IsA("IntValue")) then
+				maxHealth = maxHealthObject.Value
+			else
+				-- Если MaxHealth нет, пытаемся определить по Humanoid
+				local humanoid = character:FindFirstChild("Humanoid")
+				if humanoid then
+					maxHealth = humanoid.MaxHealth
+				end
+			end
+			
+			return health, maxHealth
+		end
 	end
 	
-	local healthAttr = character:GetAttribute("Health")
-	local maxHealthAttr = character:GetAttribute("MaxHealth")
-	if healthAttr and maxHealthAttr then
-		return healthAttr, maxHealthAttr
+	-- Fallback: Humanoid
+	local humanoid = character:FindFirstChild("Humanoid")
+	if humanoid then
+		return humanoid.Health, humanoid.MaxHealth
 	end
 	
 	return 100, 100
