@@ -5,6 +5,7 @@ end
 local Workspace = cloneref(game:GetService("Workspace"))
 local RunService = cloneref(game:GetService("RunService"))
 local Players = cloneref(game:GetService("Players"))
+local Lighting = cloneref(game:GetService("Lighting"))
 local CoreGui = game:GetService("CoreGui")
 
 local LocalPlayer = Players.LocalPlayer
@@ -13,7 +14,6 @@ local Camera = Workspace.CurrentCamera
 local ESPCounter = 0
 local ActiveESPs = {}
 local ActiveSkeletons = {}
-local ActiveDrawingBars = {}
 
 local ESP = {
 	Enabled = false,
@@ -48,9 +48,15 @@ local ESP = {
 			RGB = Color3.fromRGB(255, 255, 255),
 		},
 		HealthBar = {
-			Enabled = true,
-			Thickness = 4,
+			Enabled = false,
+			Width = 4,
+			Height = 0,
 			Position = "Left",
+			ShowText = false,
+			TextSize = 8,
+			ColorLow = Color3.fromRGB(255, 0, 0),
+			ColorMid = Color3.fromRGB(255, 255, 0),
+			ColorHigh = Color3.fromRGB(0, 255, 0),
 		},
 		Boxes = {
 			Animate = false,
@@ -88,16 +94,25 @@ local ESP = {
 	},
 }
 
+-- ПРЯМОЕ ПОЛУЧЕНИЕ ЦВЕТА ЗДОРОВЬЯ (как в твоём рабочем примере)
 local function getHealthColor(percent)
-    if percent >= 70 then
-        return Color3.fromRGB(0, 255, 0)
-    elseif percent >= 30 then
-        local t = (percent - 30) / 40
-        return Color3.new(1, t, 0)
-    else
-        local t = percent / 30
-        return Color3.new(1, t * 0.5, 0)
-    end
+	if percent >= 70 then
+		return ESP.Drawing.HealthBar.ColorHigh
+	elseif percent >= 30 then
+		local t = (percent - 30) / 40
+		return Color3.new(
+			ESP.Drawing.HealthBar.ColorHigh.R * t + ESP.Drawing.HealthBar.ColorMid.R * (1 - t),
+			ESP.Drawing.HealthBar.ColorHigh.G * t + ESP.Drawing.HealthBar.ColorMid.G * (1 - t),
+			ESP.Drawing.HealthBar.ColorHigh.B * t + ESP.Drawing.HealthBar.ColorMid.B * (1 - t)
+		)
+	else
+		local t = percent / 30
+		return Color3.new(
+			ESP.Drawing.HealthBar.ColorMid.R * t + ESP.Drawing.HealthBar.ColorLow.R * (1 - t),
+			ESP.Drawing.HealthBar.ColorMid.G * t + ESP.Drawing.HealthBar.ColorLow.G * (1 - t),
+			ESP.Drawing.HealthBar.ColorMid.B * t + ESP.Drawing.HealthBar.ColorLow.B * (1 - t)
+		)
+	end
 end
 
 local BONE_CONNECTIONS = {
@@ -146,7 +161,6 @@ function Functions:CleanAllESPs()
 	end
 	ActiveESPs = {}
 	self:CleanAllSkeletons()
-	self:CleanDrawingBars()
 end
 
 function Functions:CleanAllSkeletons()
@@ -155,6 +169,7 @@ function Functions:CleanAllSkeletons()
 			for _, line in ipairs(skeletonData.lines) do
 				if line then
 					line.Visible = false
+					line:Remove()
 				end
 			end
 			if skeletonData.connection then
@@ -165,15 +180,6 @@ function Functions:CleanAllSkeletons()
 	ActiveSkeletons = {}
 end
 
-function Functions:CleanDrawingBars()
-	for _, bar in pairs(ActiveDrawingBars) do
-		if bar then
-			bar.Visible = false
-		end
-	end
-	ActiveDrawingBars = {}
-end
-
 function Functions:RemoveSkeleton(character)
 	local skeletonData = ActiveSkeletons[character]
 	if not skeletonData then
@@ -181,7 +187,7 @@ function Functions:RemoveSkeleton(character)
 	end
 	for _, line in ipairs(skeletonData.lines) do
 		if line then
-			line.Visible = false
+			line:Remove()
 		end
 	end
 	if skeletonData.connection then
@@ -391,6 +397,47 @@ local function CreateESP(CharacterModel)
 		RichText = true,
 	})
 
+	local HealthBarContainer = Functions:Create("Frame", {
+		Parent = ESPFolder,
+		Name = "HealthBarContainer",
+		BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+	})
+	
+	local HealthBarStroke = Functions:Create("UIStroke", {
+		Parent = HealthBarContainer,
+		Name = "HealthBarStroke",
+		Thickness = 0.5,
+		Color = Color3.fromRGB(0, 0, 0),
+		Transparency = 0.3,
+		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+	})
+	
+	local HealthBarFill = Functions:Create("Frame", {
+		Parent = HealthBarContainer,
+		Name = "HealthBarFill",
+		BackgroundColor3 = Color3.fromRGB(0, 255, 0),
+		BackgroundTransparency = 0,
+		BorderSizePixel = 0,
+		Size = UDim2.new(1, 0, 0, 0),
+	})
+	
+	local HealthBarText = Functions:Create("TextLabel", {
+		Parent = ESPFolder,
+		Name = "HealthBarText",
+		Position = UDim2.new(0.5, 0, 0, 0),
+		Size = UDim2.new(0, 40, 0, 14),
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		BackgroundTransparency = 1,
+		TextColor3 = Color3.fromRGB(255, 255, 255),
+		Font = Enum.Font.Code,
+		TextSize = ESP.Drawing.HealthBar.TextSize,
+		TextStrokeTransparency = 0,
+		TextStrokeColor3 = Color3.fromRGB(0, 0, 0),
+		Text = "100%",
+	})
+
 	local Box = Functions:Create("Frame", {
 		Parent = ESPFolder,
 		Name = "Box",
@@ -434,7 +481,7 @@ local function CreateESP(CharacterModel)
 		DepthMode = "AlwaysOnTop",
 	})
 
-	local cornerThickness = ESP.Drawing.Boxes.Corner.Thickness
+local cornerThickness = ESP.Drawing.Boxes.Corner.Thickness
 	local cornerLength = ESP.Drawing.Boxes.Corner.Length
 	local cornerProps = {
 		Parent = ESPFolder,
@@ -472,23 +519,19 @@ local function CreateESP(CharacterModel)
 	RightBottomHorizontal.Name = "RightBottomHorizontal"
 	RightBottomHorizontal.Size = UDim2.new(0, cornerLength, 0, cornerThickness)
 
-local RightBottomVertical = Functions:Create("Frame", cornerProps)
+	local RightBottomVertical = Functions:Create("Frame", cornerProps)
 	RightBottomVertical.Name = "RightBottomVertical"
 	RightBottomVertical.Size = UDim2.new(0, cornerThickness, 0, cornerLength)
 
 	local RotationAngle = -45
 	local LastTick = tick()
-	
-	-- Создаем Drawing Health Bar
-	local healthBar = Drawing.new("Line")
-	healthBar.Thickness = ESP.Drawing.HealthBar.Thickness
-	healthBar.Visible = false
-	ActiveDrawingBars[CharacterModel] = healthBar
 
 	local function HideESP()
 		Box.Visible = false
 		Name.Visible = false
 		Weapon.Visible = false
+		HealthBarContainer.Visible = false
+		HealthBarText.Visible = false
 		LeftTopHorizontal.Visible = false
 		LeftTopVertical.Visible = false
 		RightTopHorizontal.Visible = false
@@ -498,9 +541,6 @@ local RightBottomVertical = Functions:Create("Frame", cornerProps)
 		RightBottomHorizontal.Visible = false
 		RightBottomVertical.Visible = false
 		Chams.Enabled = false
-		if healthBar then
-			healthBar.Visible = false
-		end
 	end
 
 	local Connection
@@ -511,11 +551,7 @@ local RightBottomVertical = Functions:Create("Frame", cornerProps)
 		if ESPFolder then
 			ESPFolder:Destroy()
 		end
-		if healthBar then
-			healthBar.Visible = false
-		end
 		ActiveESPs[CharacterModel] = nil
-		ActiveDrawingBars[CharacterModel] = nil
 		Functions:RemoveSkeleton(CharacterModel)
 	end
 
@@ -556,8 +592,13 @@ local RightBottomVertical = Functions:Create("Frame", cornerProps)
 			local verticalOffset = h * 0.175
 			local dynamicCornerLength = math.min(cornerLength, w * 0.2, h * 0.2)
 
-			-- Получаем здоровье из Humanoid
+			-- ПРЯМОЕ ПОЛУЧЕНИЕ ЗДОРОВЬЯ ЧЕРЕЗ HUMANODOT (БЕЗ ВСЯКОЙ ХУЙНИ)
 			local humanoid = CharacterModel:FindFirstChild("Humanoid")
+			local healthPercent = 100
+			if humanoid then
+				healthPercent = (humanoid.Health / humanoid.MaxHealth) * 100
+			end
+			healthPercent = math.clamp(healthPercent, 0, 100)
 			
 			if ESP.FadeOut.OnDistance then
 				Functions:FadeOutOnDist(Box, Dist)
@@ -565,6 +606,8 @@ local RightBottomVertical = Functions:Create("Frame", cornerProps)
 				Functions:FadeOutOnDist(Name, Dist)
 				Functions:FadeOutOnDist(Weapon, Dist)
 				Functions:FadeOutOnDist(Chams, Dist)
+				Functions:FadeOutOnDist(HealthBarContainer, Dist)
+				Functions:FadeOutOnDist(HealthBarText, Dist)
 				Functions:FadeOutOnDist(LeftTopHorizontal, Dist)
 				Functions:FadeOutOnDist(LeftTopVertical, Dist)
 				Functions:FadeOutOnDist(RightTopHorizontal, Dist)
@@ -647,36 +690,44 @@ local RightBottomVertical = Functions:Create("Frame", cornerProps)
 
 			Outline.Enabled = full and ESP.Drawing.Boxes.Gradient
 
-			-- DRAWING HEALTH BAR (теперь точно работает)
-			if ESP.Drawing.HealthBar.Enabled and humanoid then
-				local boxTopY = Pos.Y - h / 2 + verticalOffset
-				local boxBottomY = Pos.Y + h / 2 + verticalOffset
-				local boxHeight = h
+			-- Health Bar (ПОЛНОСТЬЮ РАБОЧАЯ)
+			local healthBarEnabled = ESP.Drawing.HealthBar.Enabled
+			
+			if healthBarEnabled then
+				local barWidth = ESP.Drawing.HealthBar.Width
+				local barPosition = ESP.Drawing.HealthBar.Position
+				local healthBarHeight = h
 				
-				local hp = humanoid.Health / humanoid.MaxHealth
-				local healthHeight = boxHeight * hp
-				
-				local barX
-				if ESP.Drawing.HealthBar.Position == "Left" then
-					barX = Pos.X - w / 2 - 6
+				local healthBarX
+				if barPosition == "Left" then
+					healthBarX = Pos.X - w / 2 - barWidth - 2
 				else
-					barX = Pos.X + w / 2 + 4
+					healthBarX = Pos.X + w / 2 + 2
 				end
 				
-				healthBar.From = Vector2.new(barX, boxBottomY)
-				healthBar.To = Vector2.new(barX, boxBottomY - healthHeight)
-				healthBar.Color = getHealthColor(hp * 100)
-				healthBar.Thickness = ESP.Drawing.HealthBar.Thickness
-				healthBar.Visible = true
+				local healthBarY = Pos.Y - healthBarHeight / 2 + verticalOffset
 				
-				if ESP.FadeOut.OnDistance then
-					local fadeAlpha = math.max(0.1, 1 - (Dist / ESP.MaxDistance))
-					healthBar.Transparency = 1 - fadeAlpha
+				HealthBarContainer.Visible = true
+				HealthBarContainer.Position = UDim2.new(0, healthBarX, 0, healthBarY)
+				HealthBarContainer.Size = UDim2.new(0, barWidth, 0, healthBarHeight)
+				HealthBarFill.Size = UDim2.new(1, 0, healthPercent / 100, 0)
+				HealthBarFill.Position = UDim2.new(0, 0, 1 - (healthPercent / 100), 0)
+				HealthBarFill.BackgroundColor3 = getHealthColor(healthPercent)
+				
+				if ESP.Drawing.HealthBar.ShowText then
+					HealthBarText.Visible = true
+					HealthBarText.Text = string.format("%.0f%%", healthPercent)
+					HealthBarText.TextSize = ESP.Drawing.HealthBar.TextSize
+					local textX = healthBarX + barWidth / 2
+					local textY = healthBarY + healthBarHeight / 2
+					HealthBarText.Position = UDim2.new(0, textX, 0, textY)
+					HealthBarText.Size = UDim2.new(0, barWidth, 0, 14)
 				else
-					healthBar.Transparency = 0
+					HealthBarText.Visible = false
 				end
-			elseif healthBar then
-				healthBar.Visible = false
+			else
+				HealthBarContainer.Visible = false
+				HealthBarText.Visible = false
 			end
 
 			local CurrentTick = tick()
@@ -700,7 +751,7 @@ local RightBottomVertical = Functions:Create("Frame", cornerProps)
 				nameText = string.format("%s [%d]", nameText, math.floor(Dist))
 			end
 
-			Name.Text = nameText
+			Name.Text = string.format('(<font color="rgb(%d, %d, %d)">T</font>) %s', 255, 255, 255, nameText)
 			Name.TextColor3 = ESP.Drawing.Names.RGB
 			Name.Position = UDim2.new(0, Pos.X, 0, Pos.Y - h / 2 - 9 + verticalOffset)
 
@@ -770,10 +821,6 @@ local function MonitorViewmodels()
 		if ActiveESPs[v] then
 			ActiveESPs[v]:Destroy()
 			ActiveESPs[v] = nil
-		end
-		if ActiveDrawingBars[v] then
-			ActiveDrawingBars[v].Visible = false
-			ActiveDrawingBars[v] = nil
 		end
 		Functions:RemoveSkeleton(v)
 	end)
@@ -851,28 +898,39 @@ end
 
 ESP.ToggleHealthBar = function(enabled)
 	ESP.Drawing.HealthBar.Enabled = enabled
-	-- Принудительно обновляем видимость всех баров
-	for _, bar in pairs(ActiveDrawingBars) do
-		if bar then
-			bar.Visible = enabled
-		end
-	end
 end
 
-ESP.SetHealthBarThickness = function(thickness)
-	if type(thickness) == "number" and thickness > 0 then
-		ESP.Drawing.HealthBar.Thickness = thickness
-		for _, bar in pairs(ActiveDrawingBars) do
-			if bar then
-				bar.Thickness = thickness
-			end
-		end
+ESP.SetHealthBarWidth = function(width)
+	if type(width) == "number" and width > 0 then
+		ESP.Drawing.HealthBar.Width = width
 	end
 end
 
 ESP.SetHealthBarPosition = function(position)
 	if position == "Left" or position == "Right" then
 		ESP.Drawing.HealthBar.Position = position
+	end
+end
+
+ESP.ToggleHealthBarText = function(enabled)
+	ESP.Drawing.HealthBar.ShowText = enabled
+end
+
+ESP.SetHealthBarTextSize = function(size)
+	if type(size) == "number" and size > 0 then
+		ESP.Drawing.HealthBar.TextSize = size
+	end
+end
+
+ESP.SetHealthColors = function(low, mid, high)
+	if low and typeof(low) == "Color3" then
+		ESP.Drawing.HealthBar.ColorLow = low
+	end
+	if mid and typeof(mid) == "Color3" then
+		ESP.Drawing.HealthBar.ColorMid = mid
+	end
+	if high and typeof(high) == "Color3" then
+		ESP.Drawing.HealthBar.ColorHigh = high
 	end
 end
 
