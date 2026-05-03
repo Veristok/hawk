@@ -1,0 +1,576 @@
+local Players = game:GetService('Players')
+local RunService = game:GetService('RunService')
+local UserInputService = game:GetService('UserInputService')
+local Workspace = game:GetService("Workspace")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+local function CreateESP(Config)
+    local ESP = {}
+    local Cache = {}
+    local Friends = {}
+    local Connection = nil
+
+    local function UpdateFriends()
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= LocalPlayer then
+                pcall(function()
+                    Friends[plr.UserId] = LocalPlayer:IsFriendsWith(plr.UserId)
+                end)
+            end
+        end
+    end
+    task.spawn(UpdateFriends)
+    
+    Players.PlayerAdded:Connect(function(plr)
+        task.delay(1, function()
+            pcall(function() 
+                Friends[plr.UserId] = LocalPlayer:IsFriendsWith(plr.UserId) 
+            end)
+        end)
+    end)
+
+    local function LerpColor(a, b, t)
+        t = math.clamp(t, 0, 1)
+        return Color3.new(
+            a.R + (b.R - a.R) * t,
+            a.G + (b.G - a.G) * t,
+            a.B + (b.B - a.B) * t
+        )
+    end
+
+    local function GetAlpha(dist, maxDist, fade)
+        if not fade or maxDist <= 0 then return 1 end
+        local start = maxDist * 0.7
+        if dist < start then return 1 end
+        return math.clamp(1 - ((dist - start) / (maxDist - start)), 0.2, 1)
+    end
+
+    -- Единственное что меняю - GetBox теперь работает с torso/head из Viewmodels
+    local function GetBox(char)
+        local torso = char:FindFirstChild('torso')
+        local head = char:FindFirstChild('head')
+        local humanoid = char:FindFirstChild('Humanoid')
+        if not torso or not head then return nil end
+
+        local headTop = head.Position + Vector3.new(0, head.Size.Y / 2 + 0.3, 0)
+        
+        local leg1 = char:FindFirstChild('leg1')
+        local leg2 = char:FindFirstChild('leg2')
+        local bottom
+        
+        if leg1 and leg2 then
+            local leftPos = leg1.Position.Y - (leg1.Size.Y / 2)
+            local rightPos = leg2.Position.Y - (leg2.Size.Y / 2)
+            bottom = Vector3.new(torso.Position.X, math.min(leftPos, rightPos), torso.Position.Z)
+        else
+            bottom = torso.Position - Vector3.new(0, 3, 0)
+        end
+
+        local topScreen, topVisible = Camera:WorldToViewportPoint(headTop)
+        local bottomScreen, bottomVisible = Camera:WorldToViewportPoint(bottom)
+
+        if not topVisible and not bottomVisible then return nil end
+
+        local top = Vector2.new(topScreen.X, topScreen.Y)
+        local bot = Vector2.new(bottomScreen.X, bottomScreen.Y)
+        
+        local height = math.abs(bot.Y - top.Y)
+        local width = height * 0.5
+        
+        if height < 20 then return nil end
+        
+        local centerX = (top.X + bot.X) / 2
+
+        return {
+            X = centerX - width / 2,
+            Y = top.Y,
+            W = width,
+            H = height,
+            CX = centerX,
+            TY = top.Y,
+            BY = bot.Y
+        }
+    end
+
+    local function NewDraw()
+        local d = {}
+        
+        d.OutlineOuter = Drawing.new("Square")
+        d.OutlineOuter.Visible = false
+        d.OutlineOuter.Filled = false
+        d.OutlineOuter.Color = Color3.fromRGB(0, 0, 0)
+        d.OutlineOuter.Thickness = 3
+
+        d.Box = Drawing.new("Square")
+        d.Box.Visible = false
+        d.Box.Filled = false
+        d.Box.Thickness = 1
+
+        d.OutlineInner = Drawing.new("Square")
+        d.OutlineInner.Visible = false
+        d.OutlineInner.Filled = false
+        d.OutlineInner.Color = Color3.fromRGB(0, 0, 0)
+        d.OutlineInner.Thickness = 1
+
+        d.Corners = {}
+        d.CornerOutlines = {}
+        for i = 1, 8 do
+            d.CornerOutlines[i] = Drawing.new("Line")
+            d.CornerOutlines[i].Visible = false
+            d.CornerOutlines[i].Color = Color3.fromRGB(0, 0, 0)
+            d.CornerOutlines[i].Thickness = 3
+
+            d.Corners[i] = Drawing.new("Line")
+            d.Corners[i].Visible = false
+            d.Corners[i].Thickness = 1
+        end
+
+        d.Fill = Drawing.new("Square")
+        d.Fill.Visible = false
+        d.Fill.Filled = true
+
+        d.Name = Drawing.new("Text")
+        d.Name.Visible = false
+        d.Name.Center = true
+        d.Name.Outline = true
+        d.Name.Font = Drawing.Fonts.Plex
+        d.Name.Size = 13
+
+        d.Distance = Drawing.new("Text")
+        d.Distance.Visible = false
+        d.Distance.Center = true
+        d.Distance.Outline = true
+        d.Distance.Font = Drawing.Fonts.Plex
+        d.Distance.Size = 12
+
+        d.Weapon = Drawing.new("Text")
+        d.Weapon.Visible = false
+        d.Weapon.Center = true
+        d.Weapon.Outline = true
+        d.Weapon.Font = Drawing.Fonts.Plex
+        d.Weapon.Size = 12
+
+        d.HealthOutline = Drawing.new("Square")
+        d.HealthOutline.Visible = false
+        d.HealthOutline.Filled = true
+        d.HealthOutline.Color = Color3.fromRGB(0, 0, 0)
+
+        d.HealthBG = Drawing.new("Square")
+        d.HealthBG.Visible = false
+        d.HealthBG.Filled = true
+        d.HealthBG.Color = Color3.fromRGB(35, 35, 35)
+
+        d.HealthFill = Drawing.new("Square")
+        d.HealthFill.Visible = false
+        d.HealthFill.Filled = true
+
+        d.HealthText = Drawing.new("Text")
+        d.HealthText.Visible = false
+        d.HealthText.Center = true
+        d.HealthText.Outline = true
+        d.HealthText.Font = Drawing.Fonts.Plex
+        d.HealthText.Size = 10
+
+        d.ArmorOutline = Drawing.new("Square")
+        d.ArmorOutline.Visible = false
+        d.ArmorOutline.Filled = true
+        d.ArmorOutline.Color = Color3.fromRGB(0, 0, 0)
+
+        d.ArmorBG = Drawing.new("Square")
+        d.ArmorBG.Visible = false
+        d.ArmorBG.Filled = true
+        d.ArmorBG.Color = Color3.fromRGB(35, 35, 35)
+
+        d.ArmorFill = Drawing.new("Square")
+        d.ArmorFill.Visible = false
+        d.ArmorFill.Filled = true
+
+        return d
+    end
+
+    local function Hide(d)
+        d.OutlineOuter.Visible = false
+        d.Box.Visible = false
+        d.OutlineInner.Visible = false
+        for i = 1, 8 do
+            d.Corners[i].Visible = false
+            d.CornerOutlines[i].Visible = false
+        end
+        d.Fill.Visible = false
+        d.Name.Visible = false
+        d.Distance.Visible = false
+        d.Weapon.Visible = false
+        d.HealthOutline.Visible = false
+        d.HealthBG.Visible = false
+        d.HealthFill.Visible = false
+        d.HealthText.Visible = false
+        d.ArmorOutline.Visible = false
+        d.ArmorBG.Visible = false
+        d.ArmorFill.Visible = false
+    end
+
+    local function Destroy(d)
+        d.OutlineOuter:Remove()
+        d.Box:Remove()
+        d.OutlineInner:Remove()
+        for i = 1, 8 do
+            d.Corners[i]:Remove()
+            d.CornerOutlines[i]:Remove()
+        end
+        d.Fill:Remove()
+        d.Name:Remove()
+        d.Distance:Remove()
+        d.Weapon:Remove()
+        d.HealthOutline:Remove()
+        d.HealthBG:Remove()
+        d.HealthFill:Remove()
+        d.HealthText:Remove()
+        d.ArmorOutline:Remove()
+        d.ArmorBG:Remove()
+        d.ArmorFill:Remove()
+    end
+
+    local function Start()
+        if Connection then return end
+        
+        Connection = RunService.RenderStepped:Connect(function()
+            local cfg = Config.Esp
+            
+            if not cfg or not cfg.Enabled then
+                for _, d in pairs(Cache) do 
+                    Hide(d) 
+                end
+                return
+            end
+
+            local localChar = LocalPlayer.Character
+            local localRoot = localChar and localChar:FindFirstChild('HumanoidRootPart')
+            local alive = {}
+
+            -- БЕРЁМ МОДЕЛИ ИЗ VIEWMODELS, а не из Players
+            local viewmodels = Workspace:FindFirstChild("Viewmodels")
+            if not viewmodels then return end
+            
+            for _, model in pairs(viewmodels:GetChildren()) do
+                if not model:IsA("Model") then continue end
+                if model.Name == "LocalViewmodel" then continue end
+                
+                -- Проверяем наличие torso (как в test файле)
+                local torso = model:FindFirstChild("torso")
+                if not torso or not torso:IsA("BasePart") then continue end
+                
+                alive[model] = true
+
+                -- Проверка на друга (по имени модели ищем игрока)
+                local isFriend = false
+                for _, plr in ipairs(Players:GetPlayers()) do
+                    if plr.Name == model.Name then
+                        isFriend = Friends[plr.UserId] or false
+                        break
+                    end
+                end
+
+                if cfg.FriendCheck and isFriend then
+                    if Cache[model] then Hide(Cache[model]) end
+                    continue
+                end
+
+                if not Cache[model] then 
+                    Cache[model] = NewDraw() 
+                end
+                
+                local d = Cache[model]
+                local char = model
+
+                local hum = char:FindFirstChild('Humanoid')
+                local root = char:FindFirstChild('torso')  -- В Viewmodels используется torso вместо HumanoidRootPart
+                
+                if not hum or not root or hum.Health <= 0 then 
+                    Hide(d) 
+                    continue 
+                end
+                
+                if char:GetAttribute('Knocked') or char:GetAttribute('Dead') then 
+                    Hide(d) 
+                    continue 
+                end
+
+                local _, onScreen = Camera:WorldToViewportPoint(root.Position)
+                if not onScreen then 
+                    Hide(d) 
+                    continue 
+                end
+
+                local box = GetBox(char)
+                if not box then 
+                    Hide(d) 
+                    continue 
+                end
+
+                local dist = localRoot and (localRoot.Position - root.Position).Magnitude or 0
+                
+                if cfg.MaxDistance and cfg.MaxDistance > 0 and dist > cfg.MaxDistance then 
+                    Hide(d) 
+                    continue 
+                end
+
+                local alpha = GetAlpha(dist, cfg.MaxDistance or 200, cfg.FadeOutOnDistance)
+                local hp = math.clamp(hum.Health / hum.MaxHealth, 0, 1)
+                
+                local armor = 0
+                pcall(function() 
+                    armor = char:GetAttribute("Armor") or 0 
+                end)
+                local armorPct = math.clamp(armor / 130, 0, 1)
+
+                local fontSize = cfg.FontSize or 13
+                
+                local boxColor = Color3.fromRGB(255, 255, 255)
+                if isFriend and cfg.FriendRGB then
+                    boxColor = cfg.FriendRGB
+                elseif cfg.Boxes and cfg.Boxes.Corner and cfg.Boxes.Corner.RGB then
+                    boxColor = cfg.Boxes.Corner.RGB
+                elseif cfg.Boxes and cfg.Boxes.Full and cfg.Boxes.Full.RGB then
+                    boxColor = cfg.Boxes.Full.RGB
+                end
+
+                local showFull = cfg.Boxes and cfg.Boxes.Full and cfg.Boxes.Full.Enabled
+                local showCorner = cfg.Boxes and cfg.Boxes.Corner and cfg.Boxes.Corner.Enabled
+                local showFill = cfg.Boxes and cfg.Boxes.Filled and cfg.Boxes.Filled.Enabled
+
+                d.OutlineOuter.Visible = false
+                d.Box.Visible = false
+                d.OutlineInner.Visible = false
+                for i = 1, 8 do
+                    d.Corners[i].Visible = false
+                    d.CornerOutlines[i].Visible = false
+                end
+
+                if showFill then
+                    d.Fill.Position = Vector2.new(box.X, box.Y)
+                    d.Fill.Size = Vector2.new(box.W, box.H)
+                    d.Fill.Color = cfg.Boxes.Filled.RGB or Color3.fromRGB(0, 0, 0)
+                    d.Fill.Transparency = (1 - (cfg.Boxes.Filled.Transparency or 0.75)) * alpha
+                    d.Fill.Visible = true
+                else
+                    d.Fill.Visible = false
+                end
+
+                if showCorner and not showFull then
+                    local cornerSize = math.clamp(box.H * 0.2, 8, 25)
+                    
+                    local corners = {
+                        {Vector2.new(box.X, box.Y), Vector2.new(box.X + cornerSize, box.Y)},
+                        {Vector2.new(box.X, box.Y), Vector2.new(box.X, box.Y + cornerSize)},
+                        {Vector2.new(box.X + box.W, box.Y), Vector2.new(box.X + box.W - cornerSize, box.Y)},
+                        {Vector2.new(box.X + box.W, box.Y), Vector2.new(box.X + box.W, box.Y + cornerSize)},
+                        {Vector2.new(box.X, box.Y + box.H), Vector2.new(box.X + cornerSize, box.Y + box.H)},
+                        {Vector2.new(box.X, box.Y + box.H), Vector2.new(box.X, box.Y + box.H - cornerSize)},
+                        {Vector2.new(box.X + box.W, box.Y + box.H), Vector2.new(box.X + box.W - cornerSize, box.Y + box.H)},
+                        {Vector2.new(box.X + box.W, box.Y + box.H), Vector2.new(box.X + box.W, box.Y + box.H - cornerSize)},
+                    }
+
+                    for i = 1, 8 do
+                        d.CornerOutlines[i].From = corners[i][1]
+                        d.CornerOutlines[i].To = corners[i][2]
+                        d.CornerOutlines[i].Transparency = alpha
+                        d.CornerOutlines[i].Visible = true
+
+                        d.Corners[i].From = corners[i][1]
+                        d.Corners[i].To = corners[i][2]
+                        d.Corners[i].Color = boxColor
+                        d.Corners[i].Transparency = alpha
+                        d.Corners[i].Visible = true
+                    end
+
+                elseif showFull then
+                    d.OutlineOuter.Position = Vector2.new(box.X - 1, box.Y - 1)
+                    d.OutlineOuter.Size = Vector2.new(box.W + 2, box.H + 2)
+                    d.OutlineOuter.Transparency = alpha
+                    d.OutlineOuter.Visible = true
+
+                    d.Box.Position = Vector2.new(box.X, box.Y)
+                    d.Box.Size = Vector2.new(box.W, box.H)
+                    d.Box.Color = boxColor
+                    d.Box.Transparency = alpha
+                    d.Box.Visible = true
+
+                    d.OutlineInner.Position = Vector2.new(box.X + 1, box.Y + 1)
+                    d.OutlineInner.Size = Vector2.new(box.W - 2, box.H - 2)
+                    d.OutlineInner.Transparency = alpha
+                    d.OutlineInner.Visible = true
+                end
+
+                if cfg.Names and cfg.Names.Enabled then
+                    local nameText = model.Name
+                    
+                    if cfg.Distances and cfg.Distances.Enabled and cfg.Distances.Position == "Text" then
+                        local distStr = dist < 10 and string.format("%.1f", dist) or tostring(math.floor(dist))
+                        nameText = nameText .. " [" .. distStr .. "m]"
+                    end
+
+                    d.Name.Text = nameText
+                    d.Name.Position = Vector2.new(box.CX, box.TY - fontSize - 2)
+                    d.Name.Size = fontSize
+                    d.Name.Color = isFriend and (cfg.FriendRGB or Color3.fromRGB(0, 255, 0)) or (cfg.Names.RGB or Color3.fromRGB(255, 255, 255))
+                    d.Name.Transparency = alpha
+                    d.Name.Visible = true
+                else
+                    d.Name.Visible = false
+                end
+
+                local bottomY = box.BY + 2
+                if cfg.Distances and cfg.Distances.Enabled and cfg.Distances.Position ~= "Text" then
+                    local distStr = dist < 10 and string.format("%.1f", dist) or tostring(math.floor(dist))
+                    d.Distance.Text = distStr .. "m"
+                    d.Distance.Position = Vector2.new(box.CX, bottomY)
+                    d.Distance.Size = fontSize - 1
+                    d.Distance.Color = cfg.Distances.RGB or Color3.fromRGB(200, 200, 200)
+                    d.Distance.Transparency = alpha
+                    d.Distance.Visible = true
+                    bottomY = bottomY + fontSize
+                else
+                    d.Distance.Visible = false
+                end
+
+                if cfg.Weapons and cfg.Weapons.Enabled then
+                    local tool = char:FindFirstChildWhichIsA('Tool')
+                    if tool then
+                        d.Weapon.Text = tool.Name
+                        d.Weapon.Position = Vector2.new(box.CX, bottomY)
+                        d.Weapon.Size = fontSize - 1
+                        d.Weapon.Color = cfg.Weapons.WeaponTextRGB or Color3.fromRGB(180, 180, 180)
+                        d.Weapon.Transparency = alpha
+                        d.Weapon.Visible = true
+                    else
+                        d.Weapon.Visible = false
+                    end
+                else
+                    d.Weapon.Visible = false
+                end
+
+                if cfg.Healthbar and cfg.Healthbar.Enabled then
+                    local barWidth = cfg.Healthbar.Width or 2
+                    local barX = box.X - barWidth - 4
+                    local fillHeight = box.H * hp
+
+                    d.HealthOutline.Position = Vector2.new(barX - 1, box.Y - 1)
+                    d.HealthOutline.Size = Vector2.new(barWidth + 2, box.H + 2)
+                    d.HealthOutline.Transparency = alpha
+                    d.HealthOutline.Visible = true
+
+                    d.HealthBG.Position = Vector2.new(barX, box.Y)
+                    d.HealthBG.Size = Vector2.new(barWidth, box.H)
+                    d.HealthBG.Transparency = alpha * 0.8
+                    d.HealthBG.Visible = true
+
+                    local healthColor
+                    if hp > 0.5 then
+                        healthColor = LerpColor(Color3.fromRGB(255, 255, 0), Color3.fromRGB(0, 255, 0), (hp - 0.5) * 2)
+                    else
+                        healthColor = LerpColor(Color3.fromRGB(255, 0, 0), Color3.fromRGB(255, 255, 0), hp * 2)
+                    end
+
+                    d.HealthFill.Position = Vector2.new(barX, box.Y + box.H - fillHeight)
+                    d.HealthFill.Size = Vector2.new(barWidth, fillHeight)
+                    d.HealthFill.Color = healthColor
+                    d.HealthFill.Transparency = alpha
+                    d.HealthFill.Visible = hp > 0.01
+
+                    if cfg.Healthbar.HealthText and hp < 1 then
+                        d.HealthText.Text = tostring(math.floor(hum.Health))
+                        d.HealthText.Position = Vector2.new(barX + barWidth / 2, box.Y + box.H - fillHeight - 12)
+                        d.HealthText.Color = healthColor
+                        d.HealthText.Transparency = alpha
+                        d.HealthText.Visible = true
+                    else
+                        d.HealthText.Visible = false
+                    end
+                else
+                    d.HealthOutline.Visible = false
+                    d.HealthBG.Visible = false
+                    d.HealthFill.Visible = false
+                    d.HealthText.Visible = false
+                end
+
+                if cfg.Armor and cfg.Armor.Enabled and armor > 0 then
+                    local barWidth = cfg.Armor.BarWidth or 2
+                    local barX = box.X + box.W + 3
+                    local fillHeight = box.H * armorPct
+
+                    d.ArmorOutline.Position = Vector2.new(barX - 1, box.Y - 1)
+                    d.ArmorOutline.Size = Vector2.new(barWidth + 2, box.H + 2)
+                    d.ArmorOutline.Transparency = alpha
+                    d.ArmorOutline.Visible = true
+
+d.ArmorBG.Position = Vector2.new(barX, box.Y)
+                    d.ArmorBG.Size = Vector2.new(barWidth, box.H)
+                    d.ArmorBG.Transparency = alpha * 0.8
+                    d.ArmorBG.Visible = true
+
+                    local armorColor
+                    if armorPct >= 0.7 then
+                        armorColor = cfg.Armor.HighRGB or Color3.fromRGB(50, 150, 255)
+                    elseif armorPct >= 0.3 then
+                        armorColor = cfg.Armor.MediumRGB or Color3.fromRGB(100, 180, 255)
+                    else
+                        armorColor = cfg.Armor.LowRGB or Color3.fromRGB(150, 150, 150)
+                    end
+
+                    d.ArmorFill.Position = Vector2.new(barX, box.Y + box.H - fillHeight)
+                    d.ArmorFill.Size = Vector2.new(barWidth, fillHeight)
+                    d.ArmorFill.Color = armorColor
+                    d.ArmorFill.Transparency = alpha
+                    d.ArmorFill.Visible = true
+                else
+                    d.ArmorOutline.Visible = false
+                    d.ArmorBG.Visible = false
+                    d.ArmorFill.Visible = false
+                end
+            end
+
+            for model, d in pairs(Cache) do
+                if not alive[model] then
+                    Hide(d)
+                    Destroy(d)
+                    Cache[model] = nil
+                end
+            end
+        end)
+    end
+
+    local function Stop()
+        if Connection then
+            Connection:Disconnect()
+            Connection = nil
+        end
+        for _, d in pairs(Cache) do
+            Hide(d)
+            Destroy(d)
+        end
+        Cache = {}
+    end
+
+    if Config.Esp and Config.Esp.Use_KeyBind then
+        UserInputService.InputBegan:Connect(function(input, gpe)
+            if gpe then return end
+            if input.KeyCode == Config.Esp.KeyBind then
+                Config.Esp.Enabled = not Config.Esp.Enabled
+            end
+        end)
+    end
+
+    Start()
+
+    ESP.Start = Start
+    ESP.Stop = Stop
+    ESP.Toggle = function() 
+        Config.Esp.Enabled = not Config.Esp.Enabled 
+    end
+    ESP.Refresh = UpdateFriends
+    
+    return ESP
+end
+
+return CreateESP
