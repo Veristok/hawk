@@ -624,7 +624,14 @@ local LeftBottomVertical = Functions:Create("Frame", cornerProps)
 			local verticalOffset = h * 0.175
 			local dynamicCornerLength = math.min(cornerLength, w * 0.2, h * 0.2)
 
-			local health, maxHealth = getPlayerHealth(CharacterModel)
+			local health, maxHealth = 0, 100
+
+local realChar, humanoid = findRealCharacter(CharacterModel.Name)
+
+if humanoid then
+	health = humanoid.Health
+	maxHealth = humanoid.MaxHealth
+end
 			local healthPercent = (health / maxHealth) * 100
 			local healthPercentClamped = math.clamp(healthPercent, 0, 100)
 			
