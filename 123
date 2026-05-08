@@ -93,6 +93,7 @@ local ESP = {
 	},
 }
 
+-- Функция цвета здоровья
 local function getHealthColor(percent)
 	if percent >= 70 then
 		return ESP.Drawing.HealthBar.ColorHigh
@@ -395,7 +396,7 @@ local function CreateESP(CharacterModel)
 		RichText = true,
 	})
 
-	-- Health Bar Container
+	-- Health Bar элементы
 	local HealthBarContainer = Functions:Create("Frame", {
 		Parent = ESPFolder,
 		Name = "HealthBarContainer",
@@ -591,7 +592,7 @@ local LeftTopHorizontal = Functions:Create("Frame", cornerProps)
 			local verticalOffset = h * 0.175
 			local dynamicCornerLength = math.min(cornerLength, w * 0.2, h * 0.2)
 
-			-- Получение здоровья
+			-- ПРАВИЛЬНОЕ получение здоровья напрямую из Humanoid
 			local humanoid = CharacterModel:FindFirstChild("Humanoid")
 			local healthPercentClamped = 100
 			
@@ -692,8 +693,8 @@ local LeftTopHorizontal = Functions:Create("Frame", cornerProps)
 
 			Outline.Enabled = full and ESP.Drawing.Boxes.Gradient
 
-			-- Health Bar отображение
-			if ESP.Drawing.HealthBar.Enabled and humanoid then
+			-- Health Bar отображение (исправлено)
+			if ESP.Drawing.HealthBar.Enabled then
 				local barWidth = ESP.Drawing.HealthBar.Width
 				local barPosition = ESP.Drawing.HealthBar.Position
 				local healthBarHeight = h
@@ -717,6 +718,7 @@ local LeftTopHorizontal = Functions:Create("Frame", cornerProps)
 				if ESP.Drawing.HealthBar.ShowText then
 					HealthBarText.Visible = true
 					HealthBarText.Text = string.format("%.0f%%", healthPercentClamped)
+					HealthBarText.TextSize = ESP.Drawing.HealthBar.TextSize
 					local textX = healthBarX + barWidth / 2
 					local textY = healthBarY + healthBarHeight / 2
 					HealthBarText.Position = UDim2.new(0, textX, 0, textY)
