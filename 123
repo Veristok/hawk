@@ -94,7 +94,7 @@ local ESP = {
 	},
 }
 
--- НАША ФУНКЦИЯ ДЛЯ ЦВЕТА ЗДОРОВЬЯ
+-- Функция для цвета здоровья
 local function getHealthColor(percent)
 	if percent >= 70 then
 		return ESP.Drawing.HealthBar.ColorHigh
@@ -491,7 +491,6 @@ local function CreateESP(CharacterModel)
 		BorderSizePixel = 0,
 		Position = UDim2.new(0, 0, 0, 0),
 	}
-
 local LeftTopHorizontal = Functions:Create("Frame", cornerProps)
 	LeftTopHorizontal.Name = "LeftTopHorizontal"
 	LeftTopHorizontal.Size = UDim2.new(0, cornerLength, 0, cornerThickness)
@@ -593,12 +592,18 @@ local LeftTopHorizontal = Functions:Create("Frame", cornerProps)
 			local verticalOffset = h * 0.175
 			local dynamicCornerLength = math.min(cornerLength, w * 0.2, h * 0.2)
 
-			-- ПРАВИЛЬНОЕ получение здоровья
+			-- ПРАВИЛЬНОЕ получение здоровья (напрямую из Humanoid)
 			local humanoid = CharacterModel:FindFirstChild("Humanoid")
-			local health = humanoid and humanoid.Health or 0
-			local maxHealth = humanoid and humanoid.MaxHealth or 100
-			local healthPercent = (health / maxHealth) * 100
-			local healthPercentClamped = math.clamp(healthPercent, 0, 100)
+			local health = 100
+			local maxHealth = 100
+			local healthPercentClamped = 100
+			
+			if humanoid then
+				health = humanoid.Health
+				maxHealth = humanoid.MaxHealth
+				local healthPercent = (health / maxHealth) * 100
+				healthPercentClamped = math.clamp(healthPercent, 0, 100)
+			end
 			
 			if ESP.FadeOut.OnDistance then
 				Functions:FadeOutOnDist(Box, Dist)
@@ -690,10 +695,8 @@ local LeftTopHorizontal = Functions:Create("Frame", cornerProps)
 
 			Outline.Enabled = full and ESP.Drawing.Boxes.Gradient
 
-			-- НАШ HEALTH BAR
-			local healthBarEnabled = ESP.Drawing.HealthBar.Enabled
-			
-			if healthBarEnabled and humanoid then
+			-- НАШ HEALTH BAR (ВСЕГДА ПОКАЗЫВАЕМ если есть humanoid)
+			if ESP.Drawing.HealthBar.Enabled and humanoid then
 				local barWidth = ESP.Drawing.HealthBar.Width
 				local barPosition = ESP.Drawing.HealthBar.Position
 				local healthBarHeight = h
