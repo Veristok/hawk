@@ -93,7 +93,6 @@ local ESP = {
 	},
 }
 
--- Функция цвета здоровья
 local function getHealthColor(percent)
 	if percent >= 70 then
 		return ESP.Drawing.HealthBar.ColorHigh
@@ -207,6 +206,7 @@ local function hasTeamHighlight(model)
 	return false
 end
 
+-- ОРИГИНАЛЬНАЯ функция (не меняем)
 local function isValidPlayer(model)
 	if not model then
 		return false
@@ -396,7 +396,6 @@ local function CreateESP(CharacterModel)
 		RichText = true,
 	})
 
-	-- Health Bar элементы
 	local HealthBarContainer = Functions:Create("Frame", {
 		Parent = ESPFolder,
 		Name = "HealthBarContainer",
@@ -592,16 +591,21 @@ local LeftTopHorizontal = Functions:Create("Frame", cornerProps)
 			local verticalOffset = h * 0.175
 			local dynamicCornerLength = math.min(cornerLength, w * 0.2, h * 0.2)
 
-			-- ПРАВИЛЬНОЕ получение здоровья напрямую из Humanoid
-			local humanoid = CharacterModel:FindFirstChild("Humanoid")
-			local healthPercentClamped = 100
+			-- ПРАВИЛЬНОЕ получение здоровья из Workspace.Player.Humanoid
+			local health = 100
+			local maxHealth = 100
 			
-			if humanoid then
-				local health = humanoid.Health
-				local maxHealth = humanoid.MaxHealth
-				local healthPercent = (health / maxHealth) * 100
-				healthPercentClamped = math.clamp(healthPercent, 0, 100)
+			local player = Players:FindFirstChild(CharacterModel.Name)
+			if player and player.Character then
+				local humanoid = player.Character:FindFirstChild("Humanoid")
+				if humanoid then
+					health = humanoid.Health
+					maxHealth = humanoid.MaxHealth
+				end
 			end
+			
+			local healthPercent = (health / maxHealth) * 100
+			local healthPercentClamped = math.clamp(healthPercent, 0, 100)
 			
 			if ESP.FadeOut.OnDistance then
 				Functions:FadeOutOnDist(Box, Dist)
@@ -693,7 +697,7 @@ local LeftTopHorizontal = Functions:Create("Frame", cornerProps)
 
 			Outline.Enabled = full and ESP.Drawing.Boxes.Gradient
 
-			-- Health Bar отображение (исправлено)
+			-- Health Bar отображение
 			if ESP.Drawing.HealthBar.Enabled then
 				local barWidth = ESP.Drawing.HealthBar.Width
 				local barPosition = ESP.Drawing.HealthBar.Position
