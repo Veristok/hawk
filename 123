@@ -593,12 +593,16 @@ local function CreateESP(CharacterModel)
 			local verticalOffset = h * 0.175
 			local dynamicCornerLength = math.min(cornerLength, w * 0.2, h * 0.2)
 
-			-- НАША НОВАЯ СИСТЕМА ЗДОРОВЬЯ (без getPlayerHealth)
-			local humanoid = CharacterModel:FindFirstChild("Humanoid")
-			local health = humanoid and humanoid.Health or 100
-			local maxHealth = humanoid and humanoid.MaxHealth or 100
-			local healthPercent = (health / maxHealth) * 100
-			local healthPercentClamped = math.clamp(healthPercent, 0, 100)
+			-- ПРАВИЛЬНОЕ получение здоровья из Humanoid
+local humanoid = CharacterModel:FindFirstChild("Humanoid")
+if not humanoid then
+	HealthBarContainer.Visible = false
+	HealthBarText.Visible = false
+	return
+end
+
+local health = humanoid.Health
+local maxHealth = humanoid.MaxHealth
 			
 			if ESP.FadeOut.OnDistance then
 				Functions:FadeOutOnDist(Box, Dist)
