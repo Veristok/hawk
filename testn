@@ -3842,17 +3842,19 @@ function NeverLose:CreateWindow(Config)
 	});
 
 	local Window = {
-		Logo = Config.Logo,
-		Name = Config.Name,
-		Content = Config.Content,
-		Size = Config.Size,
-		ConfigFolder = Config.ConfigFolder,
-		Signal = NeverLose:CreateSignal(true),
-		Tabs = {},
-		CurrentTab = 1,
-		Keybind = Config.Keybind,
-		Enable3DRenderer = Config.Enable3DRenderer
-	};
+	Logo = Config.Logo,
+	Name = Config.Name,
+	Content = Config.Content,
+	Size = Config.Size,
+	ConfigFolder = Config.ConfigFolder,
+	Signal = NeverLose:CreateSignal(true),
+	Tabs = {},
+	CurrentTab = 1,
+	Keybind = Config.Keybind,
+	Enable3DRenderer = Config.Enable3DRenderer,
+	Pages = {},
+	CurrentPage = {}
+};
 
 	NeverLose.GlobalLogo = Window.Logo;
 
@@ -4958,6 +4960,122 @@ function NeverLose:CreateWindow(Config)
 				})
 			end;
 		end));
+
+function Tab:AddPage(PageConfig)
+	PageConfig = NeverLose:ProcessParams(PageConfig, {
+		Name = "Page",
+		Icon = "folder",
+	})
+	
+	if not Window.Pages[Tab] then
+		Window.Pages[Tab] = {}
+		Window.CurrentPage[Tab] = 1
+	end
+	
+	local PageFrame = Instance.new("Frame")
+	PageFrame.Parent = TabFrame
+	PageFrame.BackgroundTransparency = 1
+	PageFrame.Size = UDim2.new(1, 0, 1, 0)
+	PageFrame.Visible = false
+	PageFrame.ZIndex = 10
+	PageFrame.Name = NeverLose.RandomString()
+	
+	local Page = {
+		Name = PageConfig.Name,
+		Icon = PageConfig.Icon,
+		Root = PageFrame,
+		Signal = NeverLose:CreateSignal(false),
+	}
+	
+	function Page:AddSection(Config)
+		Config = NeverLose:ProcessParams(Config, {
+			Name = "SECTION",
+			Position = 'left'
+		})
+		
+		local SectionFrame = Instance.new("Frame")
+		local SectionLabel = Instance.new("TextLabel")
+		local SectionHandler = Instance.new("Frame")
+		local UIStroke = Instance.new("UIStroke")
+		local UICorner = Instance.new("UICorner")
+		local UIListLayout = Instance.new("UIListLayout")
+		
+		SectionFrame.Name = NeverLose.RandomString()
+		SectionFrame.Parent = PageFrame
+		SectionFrame.BackgroundTransparency = 1
+		SectionFrame.BorderSizePixel = 0
+		SectionFrame.ClipsDescendants = true
+		SectionFrame.Size = UDim2.new(1, -5, 0, 0)
+		SectionFrame.ZIndex = 9
+		
+		SectionLabel.Name = NeverLose.RandomString()
+		SectionLabel.Parent = SectionFrame
+		SectionLabel.AnchorPoint = Vector2.new(0.5, 0)
+		SectionLabel.BackgroundTransparency = 1
+		SectionLabel.BorderSizePixel = 0
+		SectionLabel.Position = UDim2.new(0.5, 0, 0, 0)
+		SectionLabel.Size = UDim2.new(1, -35, 0, 15)
+		SectionLabel.ZIndex = 9
+		SectionLabel.Font = Enum.Font.GothamMedium
+		SectionLabel.Text = Config.Name
+		SectionLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		SectionLabel.TextSize = 11
+		SectionLabel.TextTransparency = 0.5
+		SectionLabel.TextXAlignment = Enum.TextXAlignment.Left
+		
+		SectionHandler.Name = NeverLose.RandomString()
+		SectionHandler.Parent = SectionFrame
+		SectionHandler.AnchorPoint = Vector2.new(0.5, 0)
+		SectionHandler.BackgroundColor3 = Color3.fromRGB(20, 22, 27)
+		SectionHandler.BackgroundTransparency = 0.5
+		SectionHandler.BorderSizePixel = 0
+		SectionHandler.ClipsDescendants = true
+		SectionHandler.Position = UDim2.new(0.5, 0, 0, 20)
+		SectionHandler.Size = UDim2.new(1, -10, 1, -21)
+		SectionHandler.ZIndex = 9
+		
+		UIStroke.Transparency = 0.65
+		UIStroke.Color = Color3.fromRGB(45, 48, 58)
+		UIStroke.Parent = SectionHandler
+		
+		UICorner.CornerRadius = UDim.new(0, 10)
+		UICorner.Parent = SectionHandler
+		
+		UIListLayout.Parent = SectionHandler
+		UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+		UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+		
+		UIListLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
+			if UIListLayout.AbsoluteContentSize.Y <= 1 then
+				SectionFrame.Size = UDim2.new(1, -5, 0, 0)
+			else
+				SectionFrame.Size = UDim2.new(1, -5, 0, UIListLayout.AbsoluteContentSize.Y + 19.5)
+			end
+		end)
+		
+		local Section = NeverLose:RegisiterItem(SectionHandler, Page.Signal)
+		
+		Section.SetRender = function(value)
+			if value then
+				NeverLose.PlayAnimate(SectionLabel, SlowyTween, { TextTransparency = 0.5 })
+				NeverLose.PlayAnimate(SectionHandler, SlowyTween, { BackgroundTransparency = 0.5 })
+				NeverLose.PlayAnimate(UIStroke, SlowyTween, { Transparency = 0.65 })
+			else
+				NeverLose.PlayAnimate(SectionLabel, SlowyTween, { TextTransparency = 1 })
+				NeverLose.PlayAnimate(SectionHandler, SlowyTween, { BackgroundTransparency = 1 })
+				NeverLose.PlayAnimate(UIStroke, SlowyTween, { Transparency = 1 })
+			end
+		end
+		
+		Section.SetRender(Page.Signal:GetValue())
+		Page.Signal:Connect(Section.SetRender)
+		
+		return Section
+	end
+	
+	table.insert(Window.Pages[Tab], Page)
+	return Page
+end
 
 		function Tab:AddSection(Config)
 			Config = NeverLose:ProcessParams(Config , {
