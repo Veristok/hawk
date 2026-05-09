@@ -5880,6 +5880,49 @@ end
 
 	Window:_InitConfig();
 
+Window.PageWindows = Window.PageWindows or {}
+
+function Window:RegisterPages(Tab)
+
+    if not Tab.PageEnabled then
+        return
+    end
+
+    local Holder = Instance.new("Frame")
+    Holder.Name = "Pages_" .. tostring(Tab.Idx.Name)
+    Holder.Parent = UserSettings.Root
+    Holder.BackgroundTransparency = 1
+    Holder.Size = UDim2.new(1,0,0,#Tab.Pages * 25)
+
+    local Layout = Instance.new("UIListLayout")
+    Layout.Parent = Holder
+    Layout.Padding = UDim.new(0,2)
+
+    for _,Page in pairs(Tab.Pages) do
+
+        local Button = Instance.new("TextButton")
+
+        Button.Parent = Holder
+        Button.BackgroundTransparency = 1
+        Button.Size = UDim2.new(1,0,0,25)
+
+        Button.Font = Enum.Font.GothamMedium
+        Button.Text = Page.Name
+        Button.TextColor3 = Color3.fromRGB(255,255,255)
+        Button.TextSize = 12
+
+        Button.MouseButton1Click:Connect(function()
+
+            Page:Show()
+
+            UserSettings.Signal:SetValue(false)
+
+        end)
+    end
+
+    Window.PageWindows[Tab] = Holder
+end
+
 	local UserSettings = NeverLose:CreateOptionWindow(BottomFrame , BottomFrame.ZIndex + 13);
 	local reciveSignal;
 	NeverLose:CreateInput(BottomFrame , LPH_NO_VIRTUALIZE(function()
