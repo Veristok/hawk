@@ -5008,11 +5008,120 @@ end
 			end;
 		end));
 
+       function Tab:AddPage(PageName)
+
+    local Page = {}
+
+    Page.Name = PageName
+
+    Page.Left = Instance.new("ScrollingFrame")
+    Page.Right = Instance.new("ScrollingFrame")
+
+    Page.Left.Parent = LeftScroll.Parent
+    Page.Right.Parent = RightScroll.Parent
+
+    Page.Left.BackgroundTransparency = 1
+    Page.Right.BackgroundTransparency = 1
+
+    Page.Left.BorderSizePixel = 0
+    Page.Right.BorderSizePixel = 0
+
+    Page.Left.Size = LeftScroll.Size
+    Page.Right.Size = RightScroll.Size
+
+    Page.Left.Position = LeftScroll.Position
+    Page.Right.Position = RightScroll.Position
+
+    Page.Left.CanvasSize = UDim2.new()
+    Page.Right.CanvasSize = UDim2.new()
+
+    Page.Left.ScrollBarThickness = 0
+    Page.Right.ScrollBarThickness = 0
+
+    Page.Left.Visible = false
+    Page.Right.Visible = false
+
+    local LeftLayout = Instance.new("UIListLayout")
+    LeftLayout.Parent = Page.Left
+    LeftLayout.Padding = UDim.new(0,5)
+
+    local RightLayout = Instance.new("UIListLayout")
+    RightLayout.Parent = Page.Right
+    RightLayout.Padding = UDim.new(0,5)
+
+    function Page:Show()
+
+        for _,v in pairs(Tab.Pages) do
+            v.Left.Visible = false
+            v.Right.Visible = false
+        end
+
+        Page.Left.Visible = true
+        Page.Right.Visible = true
+
+        Tab.CurrentPage = Page
+
+        if PageSelectorText then
+            PageSelectorText.Text = Page.Name .. " ▼"
+        end
+    end
+
+    function Page:AddSection(Config)
+
+        local OldLeft = LeftScroll
+        local OldRight = RightScroll
+
+        LeftScroll = Page.Left
+        RightScroll = Page.Right
+
+        local Result = Tab:AddSection(Config)
+
+        LeftScroll = OldLeft
+        RightScroll = OldRight
+
+        return Result
+    end
+
+    table.insert(Tab.Pages,Page)
+
+    if not Tab.CurrentPage then
+        Page:Show()
+    end
+
+    if PageSelectorWindow then
+
+        local Button = Instance.new("TextButton")
+
+        Button.Parent = PageSelectorWindow.Root
+        Button.BackgroundTransparency = 1
+        Button.Size = UDim2.new(1,0,0,25)
+
+        Button.Font = Enum.Font.GothamMedium
+        Button.Text = PageName
+        Button.TextColor3 = Color3.fromRGB(255,255,255)
+        Button.TextSize = 12
+
+        Button.MouseButton1Click:Connect(function()
+
+            Page:Show()
+
+            PageSelectorWindow.Signal:SetValue(false)
+
+        end)
+    end
+
+    return Page
+end
+
 		function Tab:AddSection(Config)
 			Config = NeverLose:ProcessParams(Config , {
 				Name = "SECTION",
 				Position = 'left'
 			});
+
+if Tab.PageEnabled then
+    error("Use Tab:AddPage() first.")
+end
 
 			local SectionFrame = Instance.new("Frame")
 			local SectionLabel = Instance.new("TextLabel")
