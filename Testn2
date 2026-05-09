@@ -2206,6 +2206,43 @@ function NeverLose:RegisiterHandler(Handler: Frame , Signal)
 		UICorner.Parent = Option
 
 		local Window = NeverLose:CreateOptionWindow(Option , ZINdex + 13);
+        if Tab.PageEnabled then
+
+    local function RefreshPages()
+
+        for _,v in pairs(OptionWindow.Root:GetChildren()) do
+            if v:IsA("TextButton") and v.Name == "PageButton" then
+                v:Destroy()
+            end
+        end
+
+        for _,Page in pairs(Tab.Pages) do
+
+            local Button = Instance.new("TextButton")
+
+            Button.Name = "PageButton"
+            Button.Parent = OptionWindow.Root
+
+            Button.BackgroundTransparency = 1
+            Button.Size = UDim2.new(1,0,0,25)
+
+            Button.Font = Enum.Font.GothamMedium
+            Button.Text = Page.Name
+            Button.TextColor3 = Color3.fromRGB(255,255,255)
+            Button.TextSize = 12
+
+            Button.MouseButton1Click:Connect(function()
+
+                Page:Show()
+
+                OptionWindow.Signal:SetValue(false)
+
+            end)
+        end
+    end
+
+    task.defer(RefreshPages)
+end
 		local reciveSignal;
 
 		Window.SetRender = LPH_NO_VIRTUALIZE(function(value)
