@@ -4721,9 +4721,13 @@ function NeverLose:CreateWindow(Config)
 			Type = "Double"
 		});
 
-		local Tab = {
-			Signal = NeverLose:CreateSignal(false);
-		};
+local Tab = {
+    Signal = NeverLose:CreateSignal(false),
+
+    Pages = {},
+    CurrentPage = nil,
+    PageEnabled = Config.Pages or false
+};
 
 		local TabButton = Instance.new("Frame")
 		local UICorner = Instance.new("UICorner")
@@ -4959,7 +4963,93 @@ function NeverLose:CreateWindow(Config)
 			end;
 		end));
 
+function Tab:AddPage(PageName)
+
+    local Page = {}
+
+    Page.Name = PageName
+
+    Page.Left = Instance.new("ScrollingFrame")
+    Page.Right = Instance.new("ScrollingFrame")
+
+    Page.Left.Parent = LeftScroll.Parent
+    Page.Right.Parent = RightScroll.Parent
+
+    Page.Left.BackgroundTransparency = 1
+    Page.Right.BackgroundTransparency = 1
+
+    Page.Left.BorderSizePixel = 0
+    Page.Right.BorderSizePixel = 0
+
+    Page.Left.Size = LeftScroll.Size
+    Page.Right.Size = RightScroll.Size
+
+    Page.Left.Position = LeftScroll.Position
+    Page.Right.Position = RightScroll.Position
+
+    Page.Left.CanvasSize = UDim2.new()
+    Page.Right.CanvasSize = UDim2.new()
+
+    Page.Left.ScrollBarThickness = 0
+    Page.Right.ScrollBarThickness = 0
+
+    Page.Left.Visible = false
+    Page.Right.Visible = false
+
+    local LeftLayout = Instance.new("UIListLayout")
+    LeftLayout.Parent = Page.Left
+    LeftLayout.Padding = UDim.new(0,5)
+
+    local RightLayout = Instance.new("UIListLayout")
+    RightLayout.Parent = Page.Right
+    RightLayout.Padding = UDim.new(0,5)
+
+    function Page:Show()
+
+        for _,v in pairs(Tab.Pages) do
+            v.Left.Visible = false
+            v.Right.Visible = false
+        end
+
+        Page.Left.Visible = true
+        Page.Right.Visible = true
+
+        Tab.CurrentPage = Page
+    end
+
+    function Page:AddSection(Config)
+
+        Config.__PageCall = true
+
+        local OldLeft = LeftScroll
+        local OldRight = RightScroll
+
+        LeftScroll = Page.Left
+        RightScroll = Page.Right
+
+        local Result = Tab:AddSection(Config)
+
+        LeftScroll = OldLeft
+        RightScroll = OldRight
+
+        Config.__PageCall = nil
+
+        return Result
+    end
+
+    table.insert(Tab.Pages,Page)
+
+    if not Tab.CurrentPage then
+        Page:Show()
+    end
+
+    return Page
+end
+
 		function Tab:AddSection(Config)
+if Tab.PageEnabled and not Config.__PageCall then
+    error("Use Tab:AddPage() first.")
+end
 			Config = NeverLose:ProcessParams(Config , {
 				Name = "SECTION",
 				Position = 'left'
