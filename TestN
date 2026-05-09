@@ -4733,6 +4733,172 @@ function NeverLose:CreateWindow(Config)
     PageEnabled = Config.Pages or false
 };
 
+-- Найдите в коде библиотеки строку:
+-- local Tab = { ... }
+
+-- И ДОБАВЬТЕ ЭТИ ПОЛЯ И МЕТОДЫ:
+
+Tab.Pages = {}
+Tab.CurrentPage = nil
+Tab.PageContainer = nil
+
+-- Создание контейнера для страниц
+local function CreatePageContainer()
+    local container = Instance.new("Frame")
+    container.Name = "PageContainer_" .. Tab.Idx.Name
+    container.Parent = TabContainer
+    container.BackgroundTransparency = 1
+    container.Size = UDim2.new(1, 0, 1, 0)
+    container.ZIndex = 5
+    Tab.PageContainer = container
+    return container
+end
+
+-- Метод AddPage
+function Tab:AddPage(pageName)
+    local pageObj = {}
+    local frame = Instance.new("ScrollingFrame")
+    
+    if not Tab.PageContainer then
+        CreatePageContainer()
+    end
+    
+    frame.Name = "Page_" .. pageName
+    frame.Parent = Tab.PageContainer
+    frame.BackgroundTransparency = 1
+    frame.Size = UDim2.new(1, 0, 1, 0)
+    frame.Visible = false
+    frame.ScrollBarThickness = 0
+    frame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    frame.BorderSizePixel = 0
+    
+    local layout = Instance.new("UIListLayout")
+    layout.Parent = frame
+    layout.Padding = UDim.new(0, 8)
+    layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    
+    layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        frame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
+    end)
+    
+    pageObj.Frame = frame
+    
+    function pageObj:AddSection(config)
+        local handler = NeverLose:RegisiterItem(frame, Tab.Signal)
+        return handler:AddSection(config)
+    end
+    
+    function pageObj:SetVisible(visible)
+        frame.Visible = visible
+    end
+    
+    Tab.Pages[pageName] = pageObj
+    
+    if not Tab.CurrentPage then
+        Tab.CurrentPage = pageName
+        pageObj:SetVisible(true)
+    end
+    
+    return pageObj
+end
+
+-- Метод SwitchPage
+function Tab:SwitchPage(pageName)
+    if not Tab.Pages[pageName] then
+        warn("Page not found: " .. pageName)
+        return
+    end
+    
+    for name, page in pairs(Tab.Pages) do
+        page:SetVisible(name == pageName)
+    end
+    Tab.CurrentPage = pageName
+    
+    -- Обновляем текст селектора если он есть
+    if Tab.PageSelectorText then
+        Tab.PageSelectorText.Text = pageName
+    end
+end
+
+-- Обновляем существующий код для селектора страниц (если есть Config.Pages)
+if Config.Pages and #Config.Pages > 0 then
+    Tab.PageEnabled = true
+    Tab.Pages = {}
+    
+    -- Создаем селектор страниц в RightHeader
+    local PageSelector = Instance.new("Frame")
+    PageSelector.Name = "PageSelector_" .. Config.Name
+    PageSelector.Parent = RightHeader
+    PageSelector.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    PageSelector.BackgroundTransparency = 0.2
+    PageSelector.BorderSizePixel = 0
+    PageSelector.Position = UDim2.new(1, -145, 0, 9)
+    PageSelector.Size = UDim2.new(0, 130, 0, 24)
+    PageSelector.ZIndex = 20
+    
+    local selectorCorner = Instance.new("UICorner")
+    selectorCorner.CornerRadius = UDim.new(0, 5)
+    selectorCorner.Parent = PageSelector
+    
+    local PageSelectorText = Instance.new("TextLabel")
+    PageSelectorText.Parent = PageSelector
+    PageSelectorText.BackgroundTransparency = 1
+    PageSelectorText.Size = UDim2.new(1, -10, 1, 0)
+    PageSelectorText.Position = UDim2.new(0, 10, 0, 0)
+    PageSelectorText.Font = Enum.Font.GothamMedium
+    PageSelectorText.Text = Config.Pages[1].Name
+    PageSelectorText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    PageSelectorText.TextSize = 12
+    PageSelectorText.TextXAlignment = Enum.TextXAlignment.Left
+    PageSelectorText.ZIndex = 21
+    
+    local PageSelectorIcon = Instance.new("TextLabel")
+    PageSelectorIcon.Parent = PageSelector
+    PageSelectorIcon.AnchorPoint = Vector2.new(1, 0.5)
+    PageSelectorIcon.BackgroundTransparency = 1
+    PageSelectorIcon.Position = UDim2.new(1, -5, 0.5, 0)
+    PageSelectorIcon.Size = UDim2.new(0, 20, 0, 20)
+    PageSelectorIcon.FontFace = NeverLose.BuiltInBold
+    PageSelectorIcon.Text = "chevron-small-down"
+    PageSelectorIcon.TextColor3 = Color3.fromRGB(223, 223, 223)
+    PageSelectorIcon.TextSize = 14
+    PageSelectorIcon.TextTransparency = 0.25
+    
+    Tab.PageSelector = PageSelector
+    Tab.PageSelectorText = PageSelectorText
+    
+    -- Создаем окно выбора страниц
+    local PageSelectorWindow = NeverLose:CreateOptionWindow(PageSelector, 15)
+    local pageList = {}
+    
+    -- Добавляем страницы в окно
+    for i, pageInfo in ipairs(Config.Pages) do
+        local pageButton = PageSelectorWindow:AddLabel(pageInfo.Name)
+        pageButton:AddButton({
+            Name = "Switch to " .. pageInfo.Name,
+            Icon = pageInfo.Icon or "chevron-large-right",
+            Callback = (function(pageName)
+                return function()
+                    Tab:SwitchPage(pageName)
+                    PageSelectorWindow.Signal:SetValue(false)
+                end
+            end)(pageInfo.Name)
+        })
+    end
+    
+    -- Открытие окна при клике
+    NeverLose:CreateInput(PageSelector, function()
+        PageSelectorWindow.Signal:SetValue(not PageSelectorWindow.Signal:GetValue())
+    end)
+    
+    -- Создаем первую страницу
+    CreatePageContainer()
+    for i, pageInfo in ipairs(Config.Pages) do
+        Tab:AddPage(pageInfo.Name)
+    end
+    Tab:SwitchPage(Config.Pages[1].Name)
+end
+
 		local TabButton = Instance.new("Frame")
 		local UICorner = Instance.new("UICorner")
 		local TabIcon = Instance.new("TextLabel")
