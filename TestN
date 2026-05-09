@@ -5074,7 +5074,11 @@ end
         LeftScroll = Page.Left
         RightScroll = Page.Right
 
-        local Result = Tab:AddSection(Config)
+        Config.__PageCall = true
+
+local Result = Tab:AddSection(Config)
+
+Config.__PageCall = nil
 
         LeftScroll = OldLeft
         RightScroll = OldRight
@@ -5114,14 +5118,14 @@ end
 end
 
 		function Tab:AddSection(Config)
+
+    if Tab.PageEnabled and not Config.__PageCall then
+        error("Use Tab:AddPage() first.")
+    end
 			Config = NeverLose:ProcessParams(Config , {
 				Name = "SECTION",
 				Position = 'left'
 			});
-
-if Tab.PageEnabled then
-    error("Use Tab:AddPage() first.")
-end
 
 			local SectionFrame = Instance.new("Frame")
 			local SectionLabel = Instance.new("TextLabel")
