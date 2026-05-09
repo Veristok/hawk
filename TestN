@@ -4726,13 +4726,20 @@ function NeverLose:CreateWindow(Config)
 		});
 
 		local Tab = {
-			Signal = NeverLose:CreateSignal(false);
-		};
+    Signal = NeverLose:CreateSignal(false),
+
+    Pages = {},
+    CurrentPage = nil,
+    PageEnabled = Config.Pages or false
+};
 
 		local TabButton = Instance.new("Frame")
 		local UICorner = Instance.new("UICorner")
 		local TabIcon = Instance.new("TextLabel")
 		local TabContentLabel = Instance.new("TextLabel")
+        local PageSelector
+        local PageSelectorText
+        local PageSelectorWindow
 
 		Tab.Idx = TabButton;
 
@@ -4776,6 +4783,44 @@ function NeverLose:CreateWindow(Config)
 		TabContentLabel.ZIndex = 9
 		TabContentLabel.Font = Enum.Font.GothamMedium
 		TabContentLabel.Text = Config.Name
+        if Tab.PageEnabled then
+
+    PageSelector = Instance.new("Frame")
+    PageSelector.Name = "PageSelector"
+    PageSelector.Parent = RightHeader
+    PageSelector.BackgroundColor3 = Color3.fromRGB(25,25,25)
+    PageSelector.BackgroundTransparency = 0.2
+    PageSelector.BorderSizePixel = 0
+    PageSelector.Position = UDim2.new(1,-145,0,9)
+    PageSelector.Size = UDim2.new(0,130,0,24)
+    PageSelector.ZIndex = 20
+
+    local UICorner = Instance.new("UICorner")
+    UICorner.CornerRadius = UDim.new(0,5)
+    UICorner.Parent = PageSelector
+
+    PageSelectorText = Instance.new("TextLabel")
+    PageSelectorText.Parent = PageSelector
+    PageSelectorText.BackgroundTransparency = 1
+    PageSelectorText.Size = UDim2.new(1,-10,1,0)
+    PageSelectorText.Position = UDim2.new(0,10,0,0)
+    PageSelectorText.Font = Enum.Font.GothamMedium
+    PageSelectorText.Text = "Select Page"
+    PageSelectorText.TextColor3 = Color3.fromRGB(255,255,255)
+    PageSelectorText.TextSize = 12
+    PageSelectorText.TextXAlignment = Enum.TextXAlignment.Left
+    PageSelectorText.ZIndex = 21
+
+    PageSelectorWindow = NeverLose:CreateOptionWindow(PageSelector,15)
+
+    NeverLose:CreateInput(PageSelector,function()
+
+        PageSelectorWindow.Signal:SetValue(
+            not PageSelectorWindow.Signal:GetValue()
+        )
+
+    end)
+end
 		TabContentLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 		TabContentLabel.TextSize = 12.000
 		TabContentLabel.TextXAlignment = Enum.TextXAlignment.Left
