@@ -3814,7 +3814,6 @@ function NeverLose:CreateWindow(Config)
 		Name = Config.Name,
 		Content = Config.Content,
 		Size = Config.Size,
-		ConfigFolder = Config.ConfigFolder,
 		Signal = NeverLose:CreateSignal(true),
 		Tabs = {},
 		CurrentTab = 1,
@@ -3825,9 +3824,6 @@ function NeverLose:CreateWindow(Config)
 	NeverLose.GlobalLogo = Window.Logo;
 
 	local Logging = NeverLose:CreateLogger();
-	if not isfolder(Window.ConfigFolder) then
-		makefolder(Window.ConfigFolder);
-	end;
 
 	local WindowFrame = Instance.new("Frame")
 	local UICorner = Instance.new("UICorner")
