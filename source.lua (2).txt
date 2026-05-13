@@ -5351,7 +5351,8 @@ function Window:_InitPageSystem()
             PageLabel.Text = page.Name
             PageLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
             PageLabel.TextSize = 12.000
-            PageLabel.TextTransparency = 1
+            PageLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            PageLabel.TextTransparency = 0
             PageLabel.TextXAlignment = Enum.TextXAlignment.Left
             
             UICorner_Item.CornerRadius = UDim.new(0, 6)
