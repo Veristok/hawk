@@ -5223,7 +5223,7 @@ end
 
 end)
             
-    -- НОВАЯ СИСТЕМА СТРАНИЦ ВМЕСТО КОНФИГОВ (РАБОЧАЯ ВЕРСИЯ)
+    -- НОВАЯ СИСТЕМА СТРАНИЦ (ВСТАВИТЬ В БИБЛИОТЕКУ ПЕРЕД Window.UserSettings)
 function Window:_InitPageSystem()
     local PageSignal = NeverLose:CreateSignal(false);
     local PageLib = {
