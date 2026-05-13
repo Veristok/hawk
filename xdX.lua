@@ -1518,7 +1518,7 @@ local Library do
 
             local Items = { } do 
                 Items["Inactive"] = Instances:Create("TextButton", {
-                    Parent = Data.PageHolder.Instance,
+                    Parent = Data.SidebarTabs.Instance,
                     FontFace = Library.Font,
                     TextColor3 = FromRGB(180, 180, 180),
                     BorderColor3 = FromRGB(0, 0, 0),
@@ -1526,7 +1526,7 @@ local Library do
                     AutoButtonColor = false,
                     BackgroundTransparency = 1,
                     Name = "\0",
-                    Size = UDim2New(0, 200, 1, -12),
+                    Size = UDim2.new(1, -10, 0, 22),
                     BorderSizePixel = 0,
                     TextSize = 12,
                     BackgroundColor3 = FromRGB(255, 255, 255)
@@ -1556,30 +1556,55 @@ local Library do
                     LineJoinMode = Enum.LineJoinMode.Miter
                 }):AddToTheme({Color = "Outline"})
 
-                Items["Glow"] = Instances:Create("Frame", {
-                    Parent = Items["Inactive"].Instance,
-                    BorderColor3 = FromRGB(0, 0, 0),
-                    AnchorPoint = Vector2New(0.5, 1),
-                    BackgroundTransparency = 1,
-                    Position = UDim2New(0.5, 0, 1, 0),
-                    Name = "\0",
-                    Size = UDim2New(1, 2, 0, 0),
-                    BorderSizePixel = 0,
-                    BackgroundColor3 = FromRGB(31, 226, 130)
-                })  Items["Glow"]:AddToTheme({BackgroundColor3 = "Accent"})
+				Items["Sidebar"] = Instances:Create("Frame", {
+    Parent = Data.ContentHolder.Instance,
+    Size = UDim2.new(0.25, 0, 1, 0),
+    BackgroundTransparency = 1
+})
 
-                Instances:Create("UIGradient", {
-                    Parent = Items["Glow"].Instance,
-                    Rotation = -90,
-                    Transparency = NumSequence{NumSequenceKeypoint(0, 0), NumSequenceKeypoint(0.074, 0.6937500238418579), NumSequenceKeypoint(0.354, 0.90625), NumSequenceKeypoint(1, 1)}
-                }) 
+Items["Title"] = Instances:Create("TextLabel", {
+    Parent = Items["Sidebar"].Instance,
+    BackgroundTransparency = 1,
+    Position = UDim2.new(0, 12, 0, 12),
+    Size = UDim2.new(1, -12, 0, 24),
+    FontFace = Library.Font,
+    Text = "Utopia",
+    TextColor3 = Library.Theme.Text,
+    TextSize = 16,
+    TextXAlignment = Enum.TextXAlignment.Left
+})
+
+Items["SidebarTabs"] = Instances:Create("Frame", {
+    Parent = Items["Sidebar"].Instance,
+    BackgroundTransparency = 1,
+    Position = UDim2.new(0, 10, 0, 45),
+    Size = UDim2.new(1, -10, 1, -45)
+})
+
+Instances:Create("UIListLayout", {
+    Parent = Items["SidebarTabs"].Instance,
+    FillDirection = Enum.FillDirection.Vertical,
+    Padding = UDim.new(0, 8),
+    SortOrder = Enum.SortOrder.LayoutOrder
+})
+
+Items["SidebarLine"] = Instances:Create("Frame", {
+    Parent = Data.ContentHolder.Instance,
+    Position = UDim2.new(0.25, 0, 0, 0),
+    Size = UDim2.new(0, 1, 1, 0),
+    BorderSizePixel = 0,
+    BackgroundColor3 = Library.Theme.Border
+})
+
+Data.SidebarTabs = Items["SidebarTabs"]
 
                 Items["Page"] = Instances:Create("Frame", {
                     Parent = Data.ContentHolder.Instance,
                     BackgroundTransparency = 1,
                     Name = "\0",
                     BorderColor3 = FromRGB(0, 0, 0),
-                    Size = UDim2New(1, 0, 1, 0),
+                    Position = UDim2.new(0.25, 10, 0, 0),
+Size = UDim2.new(0.75, -10, 1, 0),
                     Visible = false,
                     BorderSizePixel = 0,
                     BackgroundColor3 = FromRGB(255, 255, 255)
@@ -1650,18 +1675,12 @@ local Library do
 
                 if Page.Active then 
                     Items["Inactive"]:ChangeItemTheme({TextColor3 = "Accent"})
-                    Items["Liner"]:ChangeItemTheme({BackgroundColor3 = "Accent"})
 
                     Items["Inactive"]:Tween(nil, {TextColor3 = Library.Theme.Accent})
-                    Items["Liner"]:Tween(nil, {BackgroundColor3 = Library.Theme.Accent})
-                    Items["Glow"]:Tween(nil, {BackgroundTransparency = 0, Size = UDim2New(1, 2, 1, 0)})
                 else
                     Items["Inactive"]:ChangeItemTheme({TextColor3 = "Text"})
-                    Items["Liner"]:ChangeItemTheme({BackgroundColor3 = "Dark Liner"})
 
                     Items["Inactive"]:Tween(nil, {TextColor3 = Library.Theme.Text})
-                    Items["Liner"]:Tween(nil, {BackgroundColor3 = Library.Theme["Dark Liner"]})
-                    Items["Glow"]:Tween(nil, {BackgroundTransparency = 1, Size = UDim2New(1, 2, 0, 0)})
                 end
             end
 
