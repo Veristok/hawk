@@ -1517,8 +1517,9 @@ local Library do
             }
 
             local Items = { } do 
+				Data.SidebarTabs = Data.SidebarTabs or nil
                 Items["Inactive"] = Instances:Create("TextButton", {
-                    Parent = Data.SidebarTabs.Instance,
+                    Parent = (Data.SidebarTabs and Data.SidebarTabs.Instance) or Data.PageHolder.Instance,
                     FontFace = Library.Font,
                     TextColor3 = FromRGB(180, 180, 180),
                     BorderColor3 = FromRGB(0, 0, 0),
@@ -1578,7 +1579,8 @@ Items["SidebarTabs"] = Instances:Create("Frame", {
     Parent = Items["Sidebar"].Instance,
     BackgroundTransparency = 1,
     Position = UDim2.new(0, 10, 0, 45),
-    Size = UDim2.new(1, -10, 1, -45)
+    Size = UDim2.new(1, -10, 1, -45),
+	Data.SidebarTabs = Items["SidebarTabs"]
 })
 
 Instances:Create("UIListLayout", {
