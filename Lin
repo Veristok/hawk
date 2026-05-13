@@ -4312,10 +4312,9 @@ Library.Page = function(self, Data)
     -- КОНТЕЙНЕР ДЛЯ СЕКЦИЙ ЭТОЙ СТРАНИЦЫ
     local PageContent = Instances:Create("Frame", {
         Parent = Page.Window.Items["Content"].Instance,
-        Size = UDim2.new(1, 0, 0, 0),
+        Size = UDim2New(1, 0, 1, 0),
         BackgroundTransparency = 1,
         Visible = false,
-        AutomaticSize = Enum.AutomaticSize.Y
     })
 
     -- ХОЛДЕР ДЛЯ КОЛОНОК
@@ -4323,7 +4322,6 @@ Library.Page = function(self, Data)
         Parent = PageContent.Instance,
         Size = UDim2.new(1, 0, 1, 0),
         BackgroundTransparency = 1,
-        AutomaticSize = Enum.AutomaticSize.Y
     })
 
     local columnsLayout = Instances:Create("UIListLayout", {
