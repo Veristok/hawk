@@ -1,0 +1,94 @@
+local CustomWindow = {}
+local CoreGui = game:GetService("CoreGui")
+local FromRGB = Color3.fromRGB
+local UDim2New = UDim2.new
+
+local Holder = Instance.new("ScreenGui")
+Holder.Parent = CoreGui
+Holder.Name = "CustomGUI"
+
+function CustomWindow:Create(Data)
+    Data = Data or {}
+    
+    -- ОСНОВНОЕ ОКНО
+    local Outline = Instance.new("Frame")
+    Outline.Parent = Holder
+    Outline.Size = Data.Size or UDim2New(0, 563, 0, 558)
+    Outline.Position = UDim2New(0, 100, 0, 100)
+    Outline.BackgroundColor3 = FromRGB(43, 43, 43)
+    Outline.BorderSizePixel = 2
+    Outline.BorderColor3 = FromRGB(0, 0, 0)
+    
+    -- ВНУТРЕННЯЯ РАМКА
+    local Inline = Instance.new("Frame")
+    Inline.Parent = Outline
+    Inline.Position = UDim2New(0, 5, 0, 5)
+    Inline.Size = UDim2New(1, -10, 1, -10)
+    Inline.BackgroundColor3 = FromRGB(12, 12, 12)
+    Inline.BorderSizePixel = 2
+    Inline.BorderColor3 = FromRGB(68, 68, 68)
+    
+    -- ЛЕВАЯ ПАНЕЛЬ (для табов)
+    local LeftPanel = Instance.new("Frame")
+    LeftPanel.Parent = Inline
+    LeftPanel.Position = UDim2New(0, 13, 0, 13)
+    LeftPanel.Size = UDim2New(0, 140, 1, -26)
+    LeftPanel.BackgroundColor3 = FromRGB(13, 13, 13)
+    LeftPanel.BorderSizePixel = 2
+    LeftPanel.BorderColor3 = FromRGB(68, 68, 68)
+    
+    -- НАЗВАНИЕ ОКНА
+    local Title = Instance.new("TextLabel")
+    Title.Parent = LeftPanel
+    Title.Text = Data.Name or "Window"
+    Title.Position = UDim2New(0, 0, 0, 8)
+    Title.Size = UDim2New(1, 0, 0, 30)
+    Title.BackgroundTransparency = 1
+    Title.TextColor3 = FromRGB(180, 180, 180)
+    Title.TextSize = 14
+    Title.Font = Enum.Font.GothamSemibold
+    Title.TextXAlignment = Enum.TextXAlignment.Center
+    
+    -- КОНТЕЙНЕР ДЛЯ КНОПОК ТАБОВ
+    local TabsContainer = Instance.new("ScrollingFrame")
+    TabsContainer.Parent = LeftPanel
+    TabsContainer.Position = UDim2New(0, 4, 0, 45)
+    TabsContainer.Size = UDim2New(1, -8, 1, -52)
+    TabsContainer.BackgroundTransparency = 1
+    TabsContainer.ScrollBarThickness = 0
+    TabsContainer.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    
+    local TabsLayout = Instance.new("UIListLayout")
+    TabsLayout.Parent = TabsContainer
+    TabsLayout.Padding = UDimNew(0, 4)
+    
+    -- ПРАВАЯ ПАНЕЛЬ (для контента)
+    local RightPanel = Instance.new("Frame")
+    RightPanel.Parent = Inline
+    RightPanel.Position = UDim2New(0, 165, 0, 13)
+    RightPanel.Size = UDim2New(1, -178, 1, -26)
+    RightPanel.BackgroundColor3 = FromRGB(13, 13, 13)
+    RightPanel.BorderSizePixel = 2
+    RightPanel.BorderColor3 = FromRGB(68, 68, 68)
+    
+    -- КОНТЕЙНЕР ДЛЯ СТРАНИЦ
+    local PagesContainer = Instance.new("Frame")
+    PagesContainer.Parent = RightPanel
+    PagesContainer.Position = UDim2New(0, 8, 0, 8)
+    PagesContainer.Size = UDim2New(1, -16, 1, -16)
+    PagesContainer.BackgroundTransparency = 1
+    
+    local PagesLayout = Instance.new("UIListLayout")
+    PagesLayout.Parent = PagesContainer
+    PagesLayout.Padding = UDimNew(0, 10)
+    
+    return {
+        Outline = Outline,
+        TabsContainer = TabsContainer,
+        PagesContainer = PagesContainer,
+        LeftPanel = LeftPanel,
+        RightPanel = RightPanel
+    }
+end
+
+return CustomWindow
