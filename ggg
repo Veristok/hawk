@@ -31,7 +31,7 @@ function CustomWindow:Create(Data)
     Inline.BorderSizePixel = 2
     Inline.BorderColor3 = FromRGB(68, 68, 68)
     
-    -- ЗЕЛЕНАЯ ЛИНИЯ СВЕРХУ
+    -- ЗЕЛЕНАЯ ЛИНИЯ СВЕРХУ (просто цвет, без градиента)
     local TopLiner = Instance.new("Frame")
     TopLiner.Parent = Inline
     TopLiner.Position = UDim2New(0, 0, 0, 0)
@@ -95,12 +95,12 @@ function CustomWindow:Create(Data)
     ContentLayout.Padding = UDimNew(0, 10)
     ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
     
-    -- ТЕСТОВЫЙ ТАБ
+    -- ХРАНИЛИЩЕ СТРАНИЦ
     local Pages = {}
-    local CurrentPage = nil
     
     -- ФУНКЦИЯ ДОБАВЛЕНИЯ СТРАНИЦЫ
     function AddPage(PageName)
+        -- КНОПКА ТАБА
         local TabButton = Instance.new("TextButton")
         TabButton.Parent = TabsScrolling
         TabButton.Text = PageName
@@ -112,6 +112,7 @@ function CustomWindow:Create(Data)
         TabButton.TextXAlignment = Enum.TextXAlignment.Left
         TabButton.AutoButtonColor = false
         
+        -- ИНДИКАТОР
         local TabIndicator = Instance.new("Frame")
         TabIndicator.Parent = TabButton
         TabIndicator.Position = UDim2New(0, 0, 0, 4)
@@ -120,7 +121,7 @@ function CustomWindow:Create(Data)
         TabIndicator.BackgroundTransparency = 1
         TabIndicator.BorderSizePixel = 0
         
-        -- КОНТЕЙНЕР ДЛЯ КОНТЕНТА СТРАНИЦЫ
+        -- КОНТЕНТ СТРАНИЦЫ
         local PageContent = Instance.new("Frame")
         PageContent.Parent = ContentContainer
         PageContent.Size = UDim2New(1, 0, 0, 0)
@@ -133,7 +134,7 @@ function CustomWindow:Create(Data)
         PageLayout.Padding = UDimNew(0, 12)
         PageLayout.SortOrder = Enum.SortOrder.LayoutOrder
         
-        local Page = {
+        local PageData = {
             Name = PageName,
             Content = PageContent,
             TabButton = TabButton,
@@ -141,11 +142,12 @@ function CustomWindow:Create(Data)
             Active = false
         }
         
-        function Page:SetActive(Bool)
-            Page.Active = Bool
-            PageContent.Visible = Bool
+        -- ФУНКЦИЯ АКТИВАЦИИ СТРАНИЦЫ
+        function PageData:SetActive(Active)
+            PageData.Active = Active
+            PageContent.Visible = Active
             
-            if Bool then
+            if Active then
                 TabButton.TextColor3 = FromRGB(31, 226, 130)
                 TabIndicator.BackgroundTransparency = 0
             else
@@ -154,20 +156,95 @@ function CustomWindow:Create(Data)
             end
         end
         
+        -- НАЖАТИЕ НА ТАБ
         TabButton.MouseButton1Click:Connect(function()
-            for _, p in pairs(Pages) do
-                p:SetActive(false)
+            for _, page in pairs(Pages) do
+                page:SetActive(false)
             end
-            Page:SetActive(true)
+            PageData:SetActive(true)
         end)
         
-        table.insert(Pages, Page)
+        table.insert(Pages, PageData)
         
+        -- АКТИВИРУЕМ ПЕРВУЮ СТРАНИЦУ
         if #Pages == 1 then
-            Page:SetActive(true)
+            PageData:SetActive(true)
         end
         
-        return Page
+        -- ФУНКЦИЯ ДОБАВЛЕНИЯ СЕКЦИИ
+        function PageData:AddSection(SectionName)
+            local Section = Instance.new("Frame")
+            Section.Parent = PageContent
+            Section.Size = UDim2New(1, 0, 0, 25)
+            Section.BackgroundColor3 = FromRGB(19, 19, 19)
+            Section.BorderSizePixel = 2
+            Section.BorderColor3 = FromRGB(0, 0, 0)
+            Section.AutomaticSize = Enum.AutomaticSize.Y
+            
+            -- ЗАГОЛОВОК СЕКЦИИ
+            local SectionHeader = Instance.new("Frame")
+            SectionHeader.Parent = Section
+            SectionHeader.Position = UDim2New(0, 2, 0, -2)
+            SectionHeader.Size = UDim2New(1, -4, 0, 2)
+            SectionHeader.BackgroundColor3 = FromRGB(31, 226, 130)
+            SectionHeader.BorderSizePixel = 0
+            
+            local SectionTitle = Instance.new("TextLabel")
+            SectionTitle.Parent = SectionHeader
+            SectionTitle.Text = SectionName
+            SectionTitle.Position = UDim2New(0, 9, 0, 0)
+            SectionTitle.Size = UDim2New(0, 40, 0, 13)
+            SectionTitle.BackgroundColor3 = FromRGB(19, 19, 19)
+            SectionTitle.TextColor3 = FromRGB(180, 180, 180)
+            SectionTitle.TextSize = 12
+            SectionTitle.Font = Enum.Font.Gotham
+            SectionTitle.AutomaticSize = Enum.AutomaticSize.X
+            
+            -- КОНТЕЙНЕР ДЛЯ ЭЛЕМЕНТОВ
+            local ElementsContainer = Instance.new("Frame")
+            ElementsContainer.Parent = Section
+            ElementsContainer.Position = UDim2New(0, 12, 0, 17)
+            ElementsContainer.Size = UDim2New(1, -24, 1, -20)
+            ElementsContainer.BackgroundTransparency = 1
+            
+            local ElementsLayout = Instance.new("UIListLayout")
+            ElementsLayout.Parent = ElementsContainer
+            ElementsLayout.Padding = UDimNew(0, 6)
+            
+            return {
+                Container = ElementsContainer,
+                AddLabel = function(Text)
+                    local Label = Instance.new("TextLabel")
+                    Label.Parent = ElementsContainer
+                    Label.Text = Text
+                    Label.Size = UDim2New(1, 0, 0, 15)
+                    Label.BackgroundTransparency = 1
+                    Label.TextColor3 = FromRGB(180, 180, 180)
+                    Label.TextSize = 12
+                    Label.Font = Enum.Font.Gotham
+                    Label.TextXAlignment = Enum.TextXAlignment.Left
+                    return Label
+                end,
+                AddButton = function(Text, Callback)
+                    local Button = Instance.new("TextButton")
+                    Button.Parent = ElementsContainer
+                    Button.Text = Text
+                    Button.Size = UDim2New(1, 0, 0, 17)
+                    Button.BackgroundColor3 = FromRGB(63, 63, 63)
+                    Button.TextColor3 = FromRGB(180, 180, 180)
+                    Button.TextSize = 12
+                    Button.Font = Enum.Font.Gotham
+                    Button.AutoButtonColor = false
+                    
+                    Button.MouseButton1Click:Connect(function()
+                        if Callback then Callback() end
+                    end)
+                    return Button
+                end
+            }
+        end
+        
+        return PageData
     end
     
     -- DRAG & DROP
@@ -198,8 +275,7 @@ function CustomWindow:Create(Data)
     
     return {
         Outline = Outline,
-        AddPage = AddPage,
-        GetPages = function() return Pages end
+        AddPage = AddPage
     }
 end
 
