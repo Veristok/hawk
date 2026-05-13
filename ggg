@@ -3,7 +3,6 @@ local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
 local FromRGB = Color3.fromRGB
 local UDim2New = UDim2.new
-local Vector2New = Vector2.new
 
 local Holder = Instance.new("ScreenGui")
 Holder.Parent = CoreGui
@@ -32,7 +31,7 @@ function CustomWindow:Create(Data)
     Inline.BorderSizePixel = 2
     Inline.BorderColor3 = FromRGB(68, 68, 68)
     
-    -- ЗЕЛЕНАЯ ЛИНИЯ СВЕРХУ (как в оригинале)
+    -- ЗЕЛЕНАЯ ЛИНИЯ СВЕРХУ
     local TopLiner = Instance.new("Frame")
     TopLiner.Parent = Inline
     TopLiner.Position = UDim2New(0, 0, 0, 0)
@@ -40,16 +39,7 @@ function CustomWindow:Create(Data)
     TopLiner.BackgroundColor3 = FromRGB(31, 226, 130)
     TopLiner.BorderSizePixel = 0
     
-    -- ГРАДИЕНТ ДЛЯ ЛИНИИ
-    local TopLinerGradient = Instance.new("UIGradient")
-    TopLinerGradient.Parent = TopLiner
-    TopLinerGradient.Rotation = 90
-    TopLinerGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, FromRGB(255, 255, 255)),
-        ColorSequenceKeypoint(1, FromRGB(94, 94, 94))
-    }
-    
-    -- НАЗВАНИЕ ОКНА (сверху слева)
+    -- НАЗВАНИЕ ОКНА
     local Title = Instance.new("TextLabel")
     Title.Parent = Inline
     Title.Text = Data.Name or "Window"
@@ -62,7 +52,7 @@ function CustomWindow:Create(Data)
     Title.TextXAlignment = Enum.TextXAlignment.Left
     Title.TextYAlignment = Enum.TextYAlignment.Center
     
-    -- ВЕРТИКАЛЬНАЯ ЛИНИЯ РАЗДЕЛИТЕЛЬ (вместо левой панели)
+    -- ВЕРТИКАЛЬНАЯ ЛИНИЯ РАЗДЕЛИТЕЛЬ
     local DividerLine = Instance.new("Frame")
     DividerLine.Parent = Inline
     DividerLine.Position = UDim2New(0, 165, 0, 8)
@@ -70,7 +60,7 @@ function CustomWindow:Create(Data)
     DividerLine.BackgroundColor3 = FromRGB(68, 68, 68)
     DividerLine.BorderSizePixel = 0
     
-    -- КОНТЕЙНЕР ДЛЯ ТАБОВ (вертикальный, слева от линии)
+    -- КОНТЕЙНЕР ДЛЯ ТАБОВ
     local TabsContainer = Instance.new("Frame")
     TabsContainer.Parent = Inline
     TabsContainer.Position = UDim2New(0, 13, 0, 40)
@@ -90,7 +80,7 @@ function CustomWindow:Create(Data)
     TabsLayout.Padding = UDimNew(0, 4)
     TabsLayout.SortOrder = Enum.SortOrder.LayoutOrder
     
-    -- ПРАВАЯ ЧАСТЬ (контент)
+    -- ПРАВАЯ ЧАСТЬ (КОНТЕНТ)
     local ContentContainer = Instance.new("ScrollingFrame")
     ContentContainer.Parent = Inline
     ContentContainer.Position = UDim2New(0, 178, 0, 13)
@@ -105,11 +95,15 @@ function CustomWindow:Create(Data)
     ContentLayout.Padding = UDimNew(0, 10)
     ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
     
-    -- ТЕСТОВЫЙ ТАБ (для примера)
-    local function AddTestTab()
+    -- ТЕСТОВЫЙ ТАБ
+    local Pages = {}
+    local CurrentPage = nil
+    
+    -- ФУНКЦИЯ ДОБАВЛЕНИЯ СТРАНИЦЫ
+    function AddPage(PageName)
         local TabButton = Instance.new("TextButton")
         TabButton.Parent = TabsScrolling
-        TabButton.Text = "Главная"
+        TabButton.Text = PageName
         TabButton.Size = UDim2New(1, 0, 0, 28)
         TabButton.BackgroundTransparency = 1
         TabButton.TextColor3 = FromRGB(180, 180, 180)
@@ -126,50 +120,57 @@ function CustomWindow:Create(Data)
         TabIndicator.BackgroundTransparency = 1
         TabIndicator.BorderSizePixel = 0
         
-        -- Тестовый контент
-        local TestContent = Instance.new("Frame")
-        TestContent.Parent = ContentContainer
-        TestContent.Size = UDim2New(1, 0, 0, 100)
-        TestContent.BackgroundColor3 = FromRGB(19, 19, 19)
-        TestContent.BorderSizePixel = 2
-        TestContent.BorderColor3 = FromRGB(0, 0, 0)
-        TestContent.Visible = true
+        -- КОНТЕЙНЕР ДЛЯ КОНТЕНТА СТРАНИЦЫ
+        local PageContent = Instance.new("Frame")
+        PageContent.Parent = ContentContainer
+        PageContent.Size = UDim2New(1, 0, 0, 0)
+        PageContent.BackgroundTransparency = 1
+        PageContent.Visible = false
+        PageContent.AutomaticSize = Enum.AutomaticSize.Y
         
-        local TestText = Instance.new("TextLabel")
-        TestText.Parent = TestContent
-        TestText.Text = "Контент страницы"
-        TestText.Size = UDim2New(1, 0, 1, 0)
-        TestText.BackgroundTransparency = 1
-        TestText.TextColor3 = FromRGB(180, 180, 180)
-        TestText.TextSize = 12
-        TestText.Font = Enum.Font.Gotham
+        local PageLayout = Instance.new("UIListLayout")
+        PageLayout.Parent = PageContent
+        PageLayout.Padding = UDimNew(0, 12)
+        PageLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        
+        local Page = {
+            Name = PageName,
+            Content = PageContent,
+            TabButton = TabButton,
+            TabIndicator = TabIndicator,
+            Active = false
+        }
+        
+        function Page:SetActive(Bool)
+            Page.Active = Bool
+            PageContent.Visible = Bool
+            
+            if Bool then
+                TabButton.TextColor3 = FromRGB(31, 226, 130)
+                TabIndicator.BackgroundTransparency = 0
+            else
+                TabButton.TextColor3 = FromRGB(180, 180, 180)
+                TabIndicator.BackgroundTransparency = 1
+            end
+        end
         
         TabButton.MouseButton1Click:Connect(function()
-            for _, child in pairs(ContentContainer:GetChildren()) do
-                if child:IsA("Frame") then
-                    child.Visible = false
-                end
+            for _, p in pairs(Pages) do
+                p:SetActive(false)
             end
-            for _, child in pairs(TabsScrolling:GetChildren()) do
-                if child:IsA("TextButton") then
-                    local indicator = child:FindFirstChild("Indicator")
-                    if indicator then
-                        indicator.BackgroundTransparency = 1
-                    end
-                    child.TextColor3 = FromRGB(180, 180, 180)
-                end
-            end
-            TestContent.Visible = true
-            TabButton.TextColor3 = FromRGB(31, 226, 130)
-            TabIndicator.BackgroundTransparency = 0
+            Page:SetActive(true)
         end)
         
-        TabButton.MouseButton1Click:Fire()
+        table.insert(Pages, Page)
+        
+        if #Pages == 1 then
+            Page:SetActive(true)
+        end
+        
+        return Page
     end
     
-    AddTestTab()
-    
-    -- DRAG & DROP (перетаскивание окна)
+    -- DRAG & DROP
     local Dragging = false
     local DragStart
     local StartPosition
@@ -197,9 +198,8 @@ function CustomWindow:Create(Data)
     
     return {
         Outline = Outline,
-        TabsContainer = TabsScrolling,
-        ContentContainer = ContentContainer,
-        AddTab = function(Name, Callback) end
+        AddPage = AddPage,
+        GetPages = function() return Pages end
     }
 end
 
