@@ -5351,7 +5351,7 @@ function Window:_InitPageSystem()
             PageLabel.Text = page.Name
             PageLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
             PageLabel.TextSize = 12.000
-            PageLabel.TextTransparency = 0.350
+            PageLabel.TextTransparency = 0
             PageLabel.TextXAlignment = Enum.TextXAlignment.Left
             
             UICorner_Item.CornerRadius = UDim.new(0, 6)
@@ -5362,18 +5362,18 @@ function Window:_InitPageSystem()
             UIStroke_Item.Parent = PageItem
             
             local enterSignal = PageButton.MouseEnter:Connect(function()
-                if PageLib.CurrentPage ~= page then
-                    NeverLose.PlayAnimate(PageItem, SlowyTween, { BackgroundTransparency = 0.3 })
-                    NeverLose.PlayAnimate(PageLabel, SlowyTween, { TextTransparency = 0.1 })
-                end
-            end)
-            
-            local leaveSignal = PageButton.MouseLeave:Connect(function()
-                if PageLib.CurrentPage ~= page then
-                    NeverLose.PlayAnimate(PageItem, SlowyTween, { BackgroundTransparency = 1 })
-                    NeverLose.PlayAnimate(PageLabel, SlowyTween, { TextTransparency = 0.35 })
-                end
-            end)
+    if PageLib.CurrentPage ~= page then
+        NeverLose.PlayAnimate(PageItem, SlowyTween, { BackgroundTransparency = 0.3 })
+        NeverLose.PlayAnimate(PageLabel, SlowyTween, { TextTransparency = 0.1 })
+    end
+end)
+
+local leaveSignal = PageButton.MouseLeave:Connect(function()
+    if PageLib.CurrentPage ~= page then
+        NeverLose.PlayAnimate(PageItem, SlowyTween, { BackgroundTransparency = 1 })
+        NeverLose.PlayAnimate(PageLabel, SlowyTween, { TextTransparency = 0.35 })
+    end
+end)
             
             local clickSignal = PageButton.MouseButton1Click:Connect(function()
                 if PageLib.CurrentPage == page then return end
