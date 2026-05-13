@@ -5221,7 +5221,9 @@ end
 		return Tab;
 	end;
 
-    -- НОВАЯ СИСТЕМА СТРАНИЦ ВМЕСТО КОНФИГОВ
+end)
+            
+    -- НОВАЯ СИСТЕМА СТРАНИЦ ВМЕСТО КОНФИГОВ (РАБОЧАЯ ВЕРСИЯ)
 function Window:_InitPageSystem()
     local PageSignal = NeverLose:CreateSignal(false);
     local PageLib = {
@@ -5321,26 +5323,40 @@ function Window:_InitPageSystem()
         end
         table.clear(PageLib.Signals);
         
-        for i, page in ipairs(tab.Pages or {}) do
+        if not tab.Pages then return end
+        
+        for i, page in ipairs(tab.Pages) do
             local PageItem = Instance.new("Frame")
             local PageButton = Instance.new("TextButton")
             local PageLabel = Instance.new("TextLabel")
             local UICorner_Item = Instance.new("UICorner")
             local UIStroke_Item = Instance.new("UIStroke")
             
+            PageItem.Name = NeverLose.RandomString();
+            PageItem.Parent = PageMenu
+            PageItem.BackgroundColor3 = Color3.fromRGB(25, 27, 33)
+            PageItem.BackgroundTransparency = 1
+            PageItem.Size = UDim2.new(1, -10, 0, 35)
+            PageItem.ZIndex = 152
+            
+            PageButton.Parent = PageItem
+            PageButton.Size = UDim2.new(1, 0, 1, 0)
+            PageButton.BackgroundTransparency = 1
+            PageButton.Text = ""
+            
             PageLabel.Name = NeverLose.RandomString();
-PageLabel.Parent = PageItem
-PageLabel.AnchorPoint = Vector2.new(0, 0.5)
-PageLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-PageLabel.BackgroundTransparency = 1.000
-PageLabel.Position = UDim2.new(0, 15, 0.5, 0)
-PageLabel.Size = UDim2.new(1, -30, 0, 20)
-PageLabel.Font = Enum.Font.GothamMedium
-PageLabel.Text = page.Name
-PageLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-PageLabel.TextSize = 13.000  -- увеличил
-PageLabel.TextTransparency = 0.200  -- как в оригинале
-PageLabel.TextXAlignment = Enum.TextXAlignment.Left
+            PageLabel.Parent = PageItem
+            PageLabel.AnchorPoint = Vector2.new(0, 0.5)
+            PageLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            PageLabel.BackgroundTransparency = 1.000
+            PageLabel.Position = UDim2.new(0, 15, 0.5, 0)
+            PageLabel.Size = UDim2.new(1, -30, 0, 20)
+            PageLabel.Font = Enum.Font.GothamMedium
+            PageLabel.Text = page.Name
+            PageLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            PageLabel.TextSize = 13.000
+            PageLabel.TextTransparency = 0.2
+            PageLabel.TextXAlignment = Enum.TextXAlignment.Left
             
             UICorner_Item.CornerRadius = UDim.new(0, 6)
             UICorner_Item.Parent = PageItem
@@ -5350,18 +5366,16 @@ PageLabel.TextXAlignment = Enum.TextXAlignment.Left
             UIStroke_Item.Parent = PageItem
             
             local enterSignal = PageButton.MouseEnter:Connect(function()
-    if PageLib.CurrentPage ~= page then
-        NeverLose.PlayAnimate(PageItem, SlowyTween, { BackgroundTransparency = 0.3 })
-        
-    end
-end)
-
-local leaveSignal = PageButton.MouseLeave:Connect(function()
-    if PageLib.CurrentPage ~= page then
-        NeverLose.PlayAnimate(PageItem, SlowyTween, { BackgroundTransparency = 1 })
-        
-    end
-end)
+                if PageLib.CurrentPage ~= page then
+                    NeverLose.PlayAnimate(PageItem, SlowyTween, { BackgroundTransparency = 0.3 })
+                end
+            end)
+            
+            local leaveSignal = PageButton.MouseLeave:Connect(function()
+                if PageLib.CurrentPage ~= page then
+                    NeverLose.PlayAnimate(PageItem, SlowyTween, { BackgroundTransparency = 1 })
+                end
+            end)
             
             local clickSignal = PageButton.MouseButton1Click:Connect(function()
                 if PageLib.CurrentPage == page then return end
