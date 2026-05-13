@@ -5365,14 +5365,14 @@ function Window:_InitPageSystem()
             local enterSignal = PageButton.MouseEnter:Connect(function()
     if PageLib.CurrentPage ~= page then
         NeverLose.PlayAnimate(PageItem, SlowyTween, { BackgroundTransparency = 0.3 })
-        NeverLose.PlayAnimate(PageLabel, SlowyTween, { TextTransparency = 0.1 })
+        
     end
 end)
 
 local leaveSignal = PageButton.MouseLeave:Connect(function()
     if PageLib.CurrentPage ~= page then
         NeverLose.PlayAnimate(PageItem, SlowyTween, { BackgroundTransparency = 1 })
-        NeverLose.PlayAnimate(PageLabel, SlowyTween, { TextTransparency = 0.35 })
+        
     end
 end)
             
