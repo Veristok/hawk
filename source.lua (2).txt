@@ -4999,7 +4999,7 @@ end;
 				end;
 			end));
 
-			local Section = NeverLose:RegisiterItem(SectionHandler , Tab.Signal);
+			local Section = NeverLose:RegisiterHandler(SectionHandler, Tab.Signal)
 
 			Section.SetRender = LPH_NO_VIRTUALIZE(function(value)
 				if value then
