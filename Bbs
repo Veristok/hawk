@@ -33,7 +33,7 @@ function Library:CreateWindow(title)
         Parent = ScreenGui,
         AnchorPoint = Vector2.new(0.5,0.5),
         Position = UDim2.new(0.5,0,0.5,0),
-        Size = UDim2.new(0,830,0,530),
+        Size = UDim2.new(0,680,0,430),
         BackgroundColor3 = self.Theme.Accent,
         BackgroundTransparency = 0.93,
         BorderSizePixel = 0
@@ -48,7 +48,7 @@ function Library:CreateWindow(title)
         Parent = ScreenGui,
         AnchorPoint = Vector2.new(0.5,0.5),
         Position = UDim2.new(0.5,0,0.5,0),
-        Size = UDim2.new(0,800,0,500),
+        Size = UDim2.new(0,650,0,400),
         BackgroundColor3 = self.Theme.Background,
         BorderSizePixel = 0
     })
@@ -66,14 +66,14 @@ function Library:CreateWindow(title)
 
     local Sidebar = Create("Frame", {
         Parent = Main,
-        Size = UDim2.new(0,180,1,0),
+        Size = UDim2.new(0,150,1,0),
         BackgroundColor3 = Color3.fromRGB(4,6,6),
         BorderSizePixel = 0
     })
 
     local Separator = Create("Frame", {
         Parent = Main,
-        Position = UDim2.new(0,180,0,0),
+        Position = UDim2.new(0,150,0,0),
         Size = UDim2.new(0,1,1,0),
         BackgroundColor3 = self.Theme.Stroke,
         BorderSizePixel = 0
@@ -81,40 +81,40 @@ function Library:CreateWindow(title)
 
     local Logo = Create("TextLabel", {
         Parent = Sidebar,
-        Position = UDim2.new(0,20,0,20),
-        Size = UDim2.new(1,-40,0,40),
+        Position = UDim2.new(0,15,0,15),
+        Size = UDim2.new(1,-30,0,32),
         BackgroundTransparency = 1,
         Text = title,
         Font = Enum.Font.GothamBold,
-        TextSize = 28,
+        TextSize = 22,
         TextColor3 = self.Theme.Text,
         TextXAlignment = Enum.TextXAlignment.Left
     })
 
     local TabsHolder = Create("Frame", {
         Parent = Sidebar,
-        Position = UDim2.new(0,0,0,80),
-        Size = UDim2.new(1,0,1,-80),
+        Position = UDim2.new(0,0,0,60),
+        Size = UDim2.new(1,0,1,-60),
         BackgroundTransparency = 1
     })
 
     local TabsLayout = Create("UIListLayout", {
         Parent = TabsHolder,
-        Padding = UDim.new(0,8),
+        Padding = UDim.new(0,6),
         SortOrder = Enum.SortOrder.LayoutOrder
     })
 
     local Content = Create("Frame", {
         Parent = Main,
-        Position = UDim2.new(0,190,0,0),
-        Size = UDim2.new(1,-200,1,0),
+        Position = UDim2.new(0,160,0,0),
+        Size = UDim2.new(1,-170,1,0),
         BackgroundTransparency = 1
     })
 
     local Search = Create("TextBox", {
         Parent = Content,
-        Position = UDim2.new(0,20,0,20),
-        Size = UDim2.new(1,-40,0,42),
+        Position = UDim2.new(0,15,0,15),
+        Size = UDim2.new(1,-30,0,34),
         BackgroundColor3 = Color3.fromRGB(10,13,13),
         BorderSizePixel = 0,
         PlaceholderText = "Search...",
@@ -122,7 +122,7 @@ function Library:CreateWindow(title)
         TextColor3 = self.Theme.Text,
         PlaceholderColor3 = self.Theme.DarkText,
         Font = Enum.Font.Gotham,
-        TextSize = 16
+        TextSize = 14
     })
 
     Create("UICorner", {
@@ -141,20 +141,20 @@ function Library:CreateWindow(title)
     function Pages:CreateTab(name)
         local TabButton = Create("TextButton", {
             Parent = TabsHolder,
-            Size = UDim2.new(1,-20,0,36),
+            Size = UDim2.new(1,-20,0,30),
             Position = UDim2.new(0,10,0,0),
             BackgroundTransparency = 1,
             Text = name,
             Font = Enum.Font.Gotham,
-            TextSize = 18,
+            TextSize = 15,
             TextColor3 = self.Theme.DarkText,
             TextXAlignment = Enum.TextXAlignment.Left
         })
 
         local Page = Create("ScrollingFrame", {
             Parent = Content,
-            Position = UDim2.new(0,0,0,80),
-            Size = UDim2.new(1,0,1,-90),
+            Position = UDim2.new(0,0,0,65),
+            Size = UDim2.new(1,0,1,-75),
             CanvasSize = UDim2.new(0,0,0,0),
             BackgroundTransparency = 1,
             BorderSizePixel = 0,
@@ -164,14 +164,14 @@ function Library:CreateWindow(title)
 
         local Layout = Create("UIListLayout", {
             Parent = Page,
-            Padding = UDim.new(0,8)
+            Padding = UDim.new(0,6)
         })
 
         local Padding = Create("UIPadding", {
             Parent = Page,
-            PaddingLeft = UDim.new(0,10),
-            PaddingRight = UDim.new(0,10),
-            PaddingTop = UDim.new(0,10)
+            PaddingLeft = UDim.new(0,8),
+            PaddingRight = UDim.new(0,8),
+            PaddingTop = UDim.new(0,8)
         })
 
         TabButton.MouseButton1Click:Connect(function()
@@ -204,7 +204,7 @@ function Library:CreateWindow(title)
 
             local Holder = Create("Frame", {
                 Parent = Page,
-                Size = UDim2.new(1,0,0,52),
+                Size = UDim2.new(1,0,0,44),
                 BackgroundTransparency = 1
             })
 
@@ -220,11 +220,11 @@ function Library:CreateWindow(title)
             local Label = Create("TextLabel", {
                 Parent = Holder,
                 Position = UDim2.new(0,0,0,0),
-                Size = UDim2.new(1,-70,1,0),
+                Size = UDim2.new(1,-60,1,0),
                 BackgroundTransparency = 1,
                 Text = text,
                 Font = Enum.Font.Gotham,
-                TextSize = 20,
+                TextSize = 16,
                 TextColor3 = self.Theme.Text,
                 TextXAlignment = Enum.TextXAlignment.Left
             })
@@ -233,7 +233,7 @@ function Library:CreateWindow(title)
                 Parent = Holder,
                 AnchorPoint = Vector2.new(1,0.5),
                 Position = UDim2.new(1,-5,0.5,0),
-                Size = UDim2.new(0,52,0,26),
+                Size = UDim2.new(0,44,0,22),
                 BackgroundColor3 = Color3.fromRGB(35,35,35),
                 Text = "",
                 AutoButtonColor = false
@@ -246,8 +246,8 @@ function Library:CreateWindow(title)
 
             local Circle = Create("Frame", {
                 Parent = Toggle,
-                Size = UDim2.new(0,22,0,22),
-                Position = UDim2.new(0,2,0.5,-11),
+                Size = UDim2.new(0,18,0,18),
+                Position = UDim2.new(0,2,0.5,-9),
                 BackgroundColor3 = Color3.fromRGB(220,220,220),
                 BorderSizePixel = 0
             })
@@ -264,7 +264,7 @@ function Library:CreateWindow(title)
                     }):Play()
 
                     TweenService:Create(Circle,TweenInfo.new(0.15),{
-                        Position = UDim2.new(1,-24,0.5,-11)
+                        Position = UDim2.new(1,-20,0.5,-9)
                     }):Play()
                 else
                     TweenService:Create(Toggle,TweenInfo.new(0.15),{
@@ -272,7 +272,7 @@ function Library:CreateWindow(title)
                     }):Play()
 
                     TweenService:Create(Circle,TweenInfo.new(0.15),{
-                        Position = UDim2.new(0,2,0.5,-11)
+                        Position = UDim2.new(0,2,0.5,-9)
                     }):Play()
                 end
 
