@@ -4363,36 +4363,50 @@ Library.Page = function(self, Data)
         SortOrder = Enum.SortOrder.LayoutOrder
     })
 
-    -- СОЗДАЁМ КОЛОНКИ (ВАЖНО: сохраняем сам Instance, а не обёртку Instances)
+    -- СОЗДАЁМ КОЛОНКИ
     for Index = 1, Page.Columns do
+        -- Контейнер для колонки
+        local ColumnContainer = Instance.new("Frame")
+        ColumnContainer.Name = "ColumnContainer" .. Index
+        ColumnContainer.Parent = ColumnsHolder.Instance
+        ColumnContainer.Size = UDim2New(1, 0, 0, 0)
+        ColumnContainer.BackgroundTransparency = 1
+        ColumnContainer.BorderSizePixel = 0
+        ColumnContainer.AutomaticSize = Enum.AutomaticSize.Y
+        
+        -- ScrollingFrame для содержимого
         local NewColumn = Instance.new("ScrollingFrame")
         NewColumn.Name = "Column" .. Index
-        NewColumn.Parent = ColumnsHolder.Instance
-        NewColumn.Size = UDim2New(1, 0, 0, 0)
+        NewColumn.Parent = ColumnContainer
+        NewColumn.Size = UDim2New(1, 0, 1, 0)
         NewColumn.BackgroundTransparency = 1
         NewColumn.BorderSizePixel = 0
-        NewColumn.ScrollBarThickness = 0
+        NewColumn.ScrollBarThickness = 4
         NewColumn.Active = true
         NewColumn.AutomaticCanvasSize = Enum.AutomaticSize.Y
         NewColumn.CanvasSize = UDim2New(0, 0, 0, 0)
         
-        -- Добавляем в тему
         Library:AddToTheme(NewColumn, {ScrollBarImageColor3 = "Accent"})
-
-        -- UIListLayout для вертикального расположения секций
+        
         local listLayout = Instance.new("UIListLayout")
         listLayout.Parent = NewColumn
         listLayout.Padding = UDim.new(0, 12)
         listLayout.SortOrder = Enum.SortOrder.LayoutOrder
-
-        -- СОХРАНЯЕМ Instance (НЕ обёртку!)
+        
+        local padding = Instance.new("UIPadding")
+        padding.Parent = NewColumn
+        padding.PaddingTop = UDim.new(0, 5)
+        padding.PaddingBottom = UDim.new(0, 5)
+        padding.PaddingLeft = UDim.new(0, 5)
+        padding.PaddingRight = UDim.new(0, 5)
+        
         Page.ColumnsData[Index] = NewColumn
     end
 
     -- ФУНКЦИЯ ПЕРЕКЛЮЧЕНИЯ
     function Page:Turn(Bool)
         Page.Active = Bool
-        PageContent.Visible = Bool
+        PageContent.Instance.Visible = Bool
 
         if Page.Active then
             TabButton:ChangeItemTheme({TextColor3 = "Accent"})
@@ -4421,7 +4435,6 @@ Library.Page = function(self, Data)
 
     TableInsert(Page.Window.Pages, Page)
 
-    -- ВОЗВРАЩАЕМ Instance колонки (для Section)
     function Page:Column(ColumnIndex)
         return Page.ColumnsData[ColumnIndex]
     end
