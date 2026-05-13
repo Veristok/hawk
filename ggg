@@ -1,11 +1,14 @@
 local CustomWindow = {}
 local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
 local FromRGB = Color3.fromRGB
 local UDim2New = UDim2.new
+local Vector2New = Vector2.new
 
 local Holder = Instance.new("ScreenGui")
 Holder.Parent = CoreGui
 Holder.Name = "CustomGUI"
+Holder.ZIndexBehavior = Enum.ZIndexBehavior.Global
 
 function CustomWindow:Create(Data)
     Data = Data or {}
@@ -18,6 +21,7 @@ function CustomWindow:Create(Data)
     Outline.BackgroundColor3 = FromRGB(43, 43, 43)
     Outline.BorderSizePixel = 2
     Outline.BorderColor3 = FromRGB(0, 0, 0)
+    Outline.Visible = true
     
     -- ВНУТРЕННЯЯ РАМКА
     local Inline = Instance.new("Frame")
@@ -28,66 +32,174 @@ function CustomWindow:Create(Data)
     Inline.BorderSizePixel = 2
     Inline.BorderColor3 = FromRGB(68, 68, 68)
     
-    -- ЛЕВАЯ ПАНЕЛЬ (для табов)
-    local LeftPanel = Instance.new("Frame")
-    LeftPanel.Parent = Inline
-    LeftPanel.Position = UDim2New(0, 13, 0, 13)
-    LeftPanel.Size = UDim2New(0, 140, 1, -26)
-    LeftPanel.BackgroundColor3 = FromRGB(13, 13, 13)
-    LeftPanel.BorderSizePixel = 2
-    LeftPanel.BorderColor3 = FromRGB(68, 68, 68)
+    -- ЗЕЛЕНАЯ ЛИНИЯ СВЕРХУ (как в оригинале)
+    local TopLiner = Instance.new("Frame")
+    TopLiner.Parent = Inline
+    TopLiner.Position = UDim2New(0, 0, 0, 0)
+    TopLiner.Size = UDim2New(1, 0, 0, 2)
+    TopLiner.BackgroundColor3 = FromRGB(31, 226, 130)
+    TopLiner.BorderSizePixel = 0
     
-    -- НАЗВАНИЕ ОКНА
+    -- ГРАДИЕНТ ДЛЯ ЛИНИИ
+    local TopLinerGradient = Instance.new("UIGradient")
+    TopLinerGradient.Parent = TopLiner
+    TopLinerGradient.Rotation = 90
+    TopLinerGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, FromRGB(255, 255, 255)),
+        ColorSequenceKeypoint(1, FromRGB(94, 94, 94))
+    }
+    
+    -- НАЗВАНИЕ ОКНА (сверху слева)
     local Title = Instance.new("TextLabel")
-    Title.Parent = LeftPanel
+    Title.Parent = Inline
     Title.Text = Data.Name or "Window"
-    Title.Position = UDim2New(0, 0, 0, 8)
-    Title.Size = UDim2New(1, 0, 0, 30)
+    Title.Position = UDim2New(0, 13, 0, 8)
+    Title.Size = UDim2New(0, 150, 0, 25)
     Title.BackgroundTransparency = 1
     Title.TextColor3 = FromRGB(180, 180, 180)
     Title.TextSize = 14
     Title.Font = Enum.Font.GothamSemibold
-    Title.TextXAlignment = Enum.TextXAlignment.Center
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.TextYAlignment = Enum.TextYAlignment.Center
     
-    -- КОНТЕЙНЕР ДЛЯ КНОПОК ТАБОВ
-    local TabsContainer = Instance.new("ScrollingFrame")
-    TabsContainer.Parent = LeftPanel
-    TabsContainer.Position = UDim2New(0, 4, 0, 45)
-    TabsContainer.Size = UDim2New(1, -8, 1, -52)
+    -- ВЕРТИКАЛЬНАЯ ЛИНИЯ РАЗДЕЛИТЕЛЬ (вместо левой панели)
+    local DividerLine = Instance.new("Frame")
+    DividerLine.Parent = Inline
+    DividerLine.Position = UDim2New(0, 165, 0, 8)
+    DividerLine.Size = UDim2New(0, 2, 1, -16)
+    DividerLine.BackgroundColor3 = FromRGB(68, 68, 68)
+    DividerLine.BorderSizePixel = 0
+    
+    -- КОНТЕЙНЕР ДЛЯ ТАБОВ (вертикальный, слева от линии)
+    local TabsContainer = Instance.new("Frame")
+    TabsContainer.Parent = Inline
+    TabsContainer.Position = UDim2New(0, 13, 0, 40)
+    TabsContainer.Size = UDim2New(0, 145, 1, -48)
     TabsContainer.BackgroundTransparency = 1
-    TabsContainer.ScrollBarThickness = 0
-    TabsContainer.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    
+    local TabsScrolling = Instance.new("ScrollingFrame")
+    TabsScrolling.Parent = TabsContainer
+    TabsScrolling.Size = UDim2New(1, 0, 1, 0)
+    TabsScrolling.BackgroundTransparency = 1
+    TabsScrolling.ScrollBarThickness = 0
+    TabsScrolling.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    TabsScrolling.CanvasSize = UDim2New(0, 0, 0, 0)
     
     local TabsLayout = Instance.new("UIListLayout")
-    TabsLayout.Parent = TabsContainer
+    TabsLayout.Parent = TabsScrolling
     TabsLayout.Padding = UDimNew(0, 4)
+    TabsLayout.SortOrder = Enum.SortOrder.LayoutOrder
     
-    -- ПРАВАЯ ПАНЕЛЬ (для контента)
-    local RightPanel = Instance.new("Frame")
-    RightPanel.Parent = Inline
-    RightPanel.Position = UDim2New(0, 165, 0, 13)
-    RightPanel.Size = UDim2New(1, -178, 1, -26)
-    RightPanel.BackgroundColor3 = FromRGB(13, 13, 13)
-    RightPanel.BorderSizePixel = 2
-    RightPanel.BorderColor3 = FromRGB(68, 68, 68)
+    -- ПРАВАЯ ЧАСТЬ (контент)
+    local ContentContainer = Instance.new("ScrollingFrame")
+    ContentContainer.Parent = Inline
+    ContentContainer.Position = UDim2New(0, 178, 0, 13)
+    ContentContainer.Size = UDim2New(1, -191, 1, -26)
+    ContentContainer.BackgroundTransparency = 1
+    ContentContainer.ScrollBarThickness = 0
+    ContentContainer.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    ContentContainer.CanvasSize = UDim2New(0, 0, 0, 0)
     
-    -- КОНТЕЙНЕР ДЛЯ СТРАНИЦ
-    local PagesContainer = Instance.new("Frame")
-    PagesContainer.Parent = RightPanel
-    PagesContainer.Position = UDim2New(0, 8, 0, 8)
-    PagesContainer.Size = UDim2New(1, -16, 1, -16)
-    PagesContainer.BackgroundTransparency = 1
+    local ContentLayout = Instance.new("UIListLayout")
+    ContentLayout.Parent = ContentContainer
+    ContentLayout.Padding = UDimNew(0, 10)
+    ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
     
-    local PagesLayout = Instance.new("UIListLayout")
-    PagesLayout.Parent = PagesContainer
-    PagesLayout.Padding = UDimNew(0, 10)
+    -- ТЕСТОВЫЙ ТАБ (для примера)
+    local function AddTestTab()
+        local TabButton = Instance.new("TextButton")
+        TabButton.Parent = TabsScrolling
+        TabButton.Text = "Главная"
+        TabButton.Size = UDim2New(1, 0, 0, 28)
+        TabButton.BackgroundTransparency = 1
+        TabButton.TextColor3 = FromRGB(180, 180, 180)
+        TabButton.TextSize = 12
+        TabButton.Font = Enum.Font.Gotham
+        TabButton.TextXAlignment = Enum.TextXAlignment.Left
+        TabButton.AutoButtonColor = false
+        
+        local TabIndicator = Instance.new("Frame")
+        TabIndicator.Parent = TabButton
+        TabIndicator.Position = UDim2New(0, 0, 0, 4)
+        TabIndicator.Size = UDim2New(0, 3, 1, -8)
+        TabIndicator.BackgroundColor3 = FromRGB(31, 226, 130)
+        TabIndicator.BackgroundTransparency = 1
+        TabIndicator.BorderSizePixel = 0
+        
+        -- Тестовый контент
+        local TestContent = Instance.new("Frame")
+        TestContent.Parent = ContentContainer
+        TestContent.Size = UDim2New(1, 0, 0, 100)
+        TestContent.BackgroundColor3 = FromRGB(19, 19, 19)
+        TestContent.BorderSizePixel = 2
+        TestContent.BorderColor3 = FromRGB(0, 0, 0)
+        TestContent.Visible = true
+        
+        local TestText = Instance.new("TextLabel")
+        TestText.Parent = TestContent
+        TestText.Text = "Контент страницы"
+        TestText.Size = UDim2New(1, 0, 1, 0)
+        TestText.BackgroundTransparency = 1
+        TestText.TextColor3 = FromRGB(180, 180, 180)
+        TestText.TextSize = 12
+        TestText.Font = Enum.Font.Gotham
+        
+        TabButton.MouseButton1Click:Connect(function()
+            for _, child in pairs(ContentContainer:GetChildren()) do
+                if child:IsA("Frame") then
+                    child.Visible = false
+                end
+            end
+            for _, child in pairs(TabsScrolling:GetChildren()) do
+                if child:IsA("TextButton") then
+                    local indicator = child:FindFirstChild("Indicator")
+                    if indicator then
+                        indicator.BackgroundTransparency = 1
+                    end
+                    child.TextColor3 = FromRGB(180, 180, 180)
+                end
+            end
+            TestContent.Visible = true
+            TabButton.TextColor3 = FromRGB(31, 226, 130)
+            TabIndicator.BackgroundTransparency = 0
+        end)
+        
+        TabButton.MouseButton1Click:Fire()
+    end
+    
+    AddTestTab()
+    
+    -- DRAG & DROP (перетаскивание окна)
+    local Dragging = false
+    local DragStart
+    local StartPosition
+    
+    Outline.InputBegan:Connect(function(Input)
+        if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+            Dragging = true
+            DragStart = Input.Position
+            StartPosition = Outline.Position
+        end
+    end)
+    
+    Outline.InputEnded:Connect(function(Input)
+        if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+            Dragging = false
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(Input)
+        if Input.UserInputType == Enum.UserInputType.MouseMovement and Dragging then
+            local Delta = Input.Position - DragStart
+            Outline.Position = UDim2New(StartPosition.X.Scale, StartPosition.X.Offset + Delta.X, StartPosition.Y.Scale, StartPosition.Y.Offset + Delta.Y)
+        end
+    end)
     
     return {
         Outline = Outline,
-        TabsContainer = TabsContainer,
-        PagesContainer = PagesContainer,
-        LeftPanel = LeftPanel,
-        RightPanel = RightPanel
+        TabsContainer = TabsScrolling,
+        ContentContainer = ContentContainer,
+        AddTab = function(Name, Callback) end
     }
 end
 
