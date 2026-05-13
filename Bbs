@@ -1,0 +1,296 @@
+local TweenService = game:GetService("TweenService")
+
+local Library = {}
+Library.__index = Library
+
+Library.Theme = {
+    Background = Color3.fromRGB(7,9,9),
+    Secondary = Color3.fromRGB(11,15,15),
+    Stroke = Color3.fromRGB(40,45,45),
+    Accent = Color3.fromRGB(0,191,165),
+    Text = Color3.fromRGB(230,230,230),
+    DarkText = Color3.fromRGB(130,130,130)
+}
+
+function Create(class, props)
+    local obj = Instance.new(class)
+
+    for i,v in pairs(props) do
+        obj[i] = v
+    end
+
+    return obj
+end
+
+function Library:CreateWindow(title)
+    local ScreenGui = Create("ScreenGui", {
+        Name = "DarkNeonUI",
+        Parent = game.CoreGui,
+        ResetOnSpawn = false
+    })
+
+    local Glow = Create("Frame", {
+        Parent = ScreenGui,
+        AnchorPoint = Vector2.new(0.5,0.5),
+        Position = UDim2.new(0.5,0,0.5,0),
+        Size = UDim2.new(0,830,0,530),
+        BackgroundColor3 = self.Theme.Accent,
+        BackgroundTransparency = 0.93,
+        BorderSizePixel = 0
+    })
+
+    Create("UICorner", {
+        Parent = Glow,
+        CornerRadius = UDim.new(0,8)
+    })
+
+    local Main = Create("Frame", {
+        Parent = ScreenGui,
+        AnchorPoint = Vector2.new(0.5,0.5),
+        Position = UDim2.new(0.5,0,0.5,0),
+        Size = UDim2.new(0,800,0,500),
+        BackgroundColor3 = self.Theme.Background,
+        BorderSizePixel = 0
+    })
+
+    Create("UICorner", {
+        Parent = Main,
+        CornerRadius = UDim.new(0,6)
+    })
+
+    Create("UIStroke", {
+        Parent = Main,
+        Color = self.Theme.Stroke,
+        Thickness = 1
+    })
+
+    local Sidebar = Create("Frame", {
+        Parent = Main,
+        Size = UDim2.new(0,180,1,0),
+        BackgroundColor3 = Color3.fromRGB(4,6,6),
+        BorderSizePixel = 0
+    })
+
+    local Separator = Create("Frame", {
+        Parent = Main,
+        Position = UDim2.new(0,180,0,0),
+        Size = UDim2.new(0,1,1,0),
+        BackgroundColor3 = self.Theme.Stroke,
+        BorderSizePixel = 0
+    })
+
+    local Logo = Create("TextLabel", {
+        Parent = Sidebar,
+        Position = UDim2.new(0,20,0,20),
+        Size = UDim2.new(1,-40,0,40),
+        BackgroundTransparency = 1,
+        Text = title,
+        Font = Enum.Font.GothamBold,
+        TextSize = 28,
+        TextColor3 = self.Theme.Text,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+
+    local TabsHolder = Create("Frame", {
+        Parent = Sidebar,
+        Position = UDim2.new(0,0,0,80),
+        Size = UDim2.new(1,0,1,-80),
+        BackgroundTransparency = 1
+    })
+
+    local TabsLayout = Create("UIListLayout", {
+        Parent = TabsHolder,
+        Padding = UDim.new(0,8),
+        SortOrder = Enum.SortOrder.LayoutOrder
+    })
+
+    local Content = Create("Frame", {
+        Parent = Main,
+        Position = UDim2.new(0,190,0,0),
+        Size = UDim2.new(1,-200,1,0),
+        BackgroundTransparency = 1
+    })
+
+    local Search = Create("TextBox", {
+        Parent = Content,
+        Position = UDim2.new(0,20,0,20),
+        Size = UDim2.new(1,-40,0,42),
+        BackgroundColor3 = Color3.fromRGB(10,13,13),
+        BorderSizePixel = 0,
+        PlaceholderText = "Search...",
+        Text = "",
+        TextColor3 = self.Theme.Text,
+        PlaceholderColor3 = self.Theme.DarkText,
+        Font = Enum.Font.Gotham,
+        TextSize = 16
+    })
+
+    Create("UICorner", {
+        Parent = Search,
+        CornerRadius = UDim.new(0,6)
+    })
+
+    Create("UIStroke", {
+        Parent = Search,
+        Color = self.Theme.Stroke,
+        Thickness = 1
+    })
+
+    local Pages = {}
+
+    function Pages:CreateTab(name)
+        local TabButton = Create("TextButton", {
+            Parent = TabsHolder,
+            Size = UDim2.new(1,-20,0,36),
+            Position = UDim2.new(0,10,0,0),
+            BackgroundTransparency = 1,
+            Text = name,
+            Font = Enum.Font.Gotham,
+            TextSize = 18,
+            TextColor3 = self.Theme.DarkText,
+            TextXAlignment = Enum.TextXAlignment.Left
+        })
+
+        local Page = Create("ScrollingFrame", {
+            Parent = Content,
+            Position = UDim2.new(0,0,0,80),
+            Size = UDim2.new(1,0,1,-90),
+            CanvasSize = UDim2.new(0,0,0,0),
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+            ScrollBarThickness = 2,
+            Visible = false
+        })
+
+        local Layout = Create("UIListLayout", {
+            Parent = Page,
+            Padding = UDim.new(0,8)
+        })
+
+        local Padding = Create("UIPadding", {
+            Parent = Page,
+            PaddingLeft = UDim.new(0,10),
+            PaddingRight = UDim.new(0,10),
+            PaddingTop = UDim.new(0,10)
+        })
+
+        TabButton.MouseButton1Click:Connect(function()
+            for _,v in pairs(Content:GetChildren()) do
+                if v:IsA("ScrollingFrame") then
+                    v.Visible = false
+                end
+            end
+
+            for _,v in pairs(TabsHolder:GetChildren()) do
+                if v:IsA("TextButton") then
+                    TweenService:Create(v,TweenInfo.new(0.15),{
+                        TextColor3 = self.Theme.DarkText
+                    }):Play()
+                end
+            end
+
+            Page.Visible = true
+
+            TweenService:Create(TabButton,TweenInfo.new(0.15),{
+                TextColor3 = self.Theme.Accent
+            }):Play()
+        end)
+
+        local Elements = {}
+
+        function Elements:CreateToggle(text, default, callback)
+            callback = callback or function() end
+            local Enabled = default
+
+            local Holder = Create("Frame", {
+                Parent = Page,
+                Size = UDim2.new(1,0,0,52),
+                BackgroundTransparency = 1
+            })
+
+            local Line = Create("Frame", {
+                Parent = Holder,
+                AnchorPoint = Vector2.new(0.5,1),
+                Position = UDim2.new(0.5,0,1,0),
+                Size = UDim2.new(1,0,0,1),
+                BackgroundColor3 = self.Theme.Stroke,
+                BorderSizePixel = 0
+            })
+
+            local Label = Create("TextLabel", {
+                Parent = Holder,
+                Position = UDim2.new(0,0,0,0),
+                Size = UDim2.new(1,-70,1,0),
+                BackgroundTransparency = 1,
+                Text = text,
+                Font = Enum.Font.Gotham,
+                TextSize = 20,
+                TextColor3 = self.Theme.Text,
+                TextXAlignment = Enum.TextXAlignment.Left
+            })
+
+            local Toggle = Create("TextButton", {
+                Parent = Holder,
+                AnchorPoint = Vector2.new(1,0.5),
+                Position = UDim2.new(1,-5,0.5,0),
+                Size = UDim2.new(0,52,0,26),
+                BackgroundColor3 = Color3.fromRGB(35,35,35),
+                Text = "",
+                AutoButtonColor = false
+            })
+
+            Create("UICorner", {
+                Parent = Toggle,
+                CornerRadius = UDim.new(1,0)
+            })
+
+            local Circle = Create("Frame", {
+                Parent = Toggle,
+                Size = UDim2.new(0,22,0,22),
+                Position = UDim2.new(0,2,0.5,-11),
+                BackgroundColor3 = Color3.fromRGB(220,220,220),
+                BorderSizePixel = 0
+            })
+
+            Create("UICorner", {
+                Parent = Circle,
+                CornerRadius = UDim.new(1,0)
+            })
+
+            local function Update()
+                if Enabled then
+                    TweenService:Create(Toggle,TweenInfo.new(0.15),{
+                        BackgroundColor3 = self.Theme.Accent
+                    }):Play()
+
+                    TweenService:Create(Circle,TweenInfo.new(0.15),{
+                        Position = UDim2.new(1,-24,0.5,-11)
+                    }):Play()
+                else
+                    TweenService:Create(Toggle,TweenInfo.new(0.15),{
+                        BackgroundColor3 = Color3.fromRGB(35,35,35)
+                    }):Play()
+
+                    TweenService:Create(Circle,TweenInfo.new(0.15),{
+                        Position = UDim2.new(0,2,0.5,-11)
+                    }):Play()
+                end
+
+                callback(Enabled)
+            end
+
+            Toggle.MouseButton1Click:Connect(function()
+                Enabled = not Enabled
+                Update()
+            end)
+
+            Update()
+        end
+
+        return Elements
+    end
+
+    return Pages
+end
+
+return setmetatable({}, Library)
