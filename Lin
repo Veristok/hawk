@@ -4178,81 +4178,101 @@ local Library do
 
     local Window = {
         Name = Data.Name or Data.name or "Window",
-        Size = Data.Size or Data.size or UDim2.new(0, 700, 0, 550),
+        Size = Data.Size or Data.size or UDim2New(0, 563, 0, 558),
         GradientTitle = Data.GradientTitle or Data.gradienttitle or false,
         Pages = { },
+        Sections = { },
         IsOpen = true,
         Items = { }
     }
 
     local Items = Components.Window({
-        Position = UDim2.new(0, Camera.ViewportSize.X / 4, 0, Camera.ViewportSize.Y / 3),
+        Position = UDim2New(0, Camera.ViewportSize.X / 4, 0, Camera.ViewportSize.Y / 3),
         Size = Window.Size,
         Parent = self.Holder,
         Draggable = true
     }) do
-        
-        -- == ЛЕВАЯ ПАНЕЛЬ (здесь будут табы) ==
+        -- ЛЕВАЯ ПАНЕЛЬ
         Items["LeftPanel"] = Instances:Create("Frame", {
             Parent = Items["Inline"].Instance,
-            Position = UDim2.new(0, 13, 0, 13),
-            Size = UDim2.new(0, 140, 1, -26),
+            Name = "LeftPanel",
+            Position = UDim2New(0, 8, 0, 8),
+            BorderColor3 = FromRGB(0, 0, 0),
+            Size = UDim2New(0, 130, 1, -16),
             BorderSizePixel = 2,
             BackgroundColor3 = FromRGB(13, 13, 13)
-        })
-        Items["LeftPanel"]:AddToTheme({BackgroundColor3 = "Inline", BorderColor3 = "Outline"})
+        })  Items["LeftPanel"]:AddToTheme({BackgroundColor3 = "Inline", BorderColor3 = "Outline"})
 
-        -- Название окна (сверху в левой панели)
+        Instances:Create("UIStroke", {
+            Parent = Items["LeftPanel"].Instance,
+            Color = FromRGB(68, 68, 68),
+            LineJoinMode = Enum.LineJoinMode.Miter,
+            ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+        }):AddToTheme({Color = "Border"})
+
+        -- НАЗВАНИЕ
         Items["TitleText"] = Instances:Create("TextLabel", {
             Parent = Items["LeftPanel"].Instance,
             FontFace = Library.Font,
+            TextColor3 = FromRGB(180, 180, 180),
+            BorderColor3 = FromRGB(0, 0, 0),
             Text = Window.Name,
-            Position = UDim2.new(0, 0, 0, 10),
-            Size = UDim2.new(1, 0, 0, 30),
+            Name = "TitleText",
+            Position = UDim2New(0, 0, 0, 8),
+            Size = UDim2New(1, 0, 0, 30),
             BackgroundTransparency = 1,
             TextXAlignment = Enum.TextXAlignment.Center,
-            TextSize = 14
+            BorderSizePixel = 0,
+            TextSize = 14,
+            BackgroundColor3 = FromRGB(255, 255, 255)
         })
         Items["TitleText"]:AddToTheme({TextColor3 = "Text"})
 
-        -- Холдер для вертикальных табов
+        -- ХОЛДЕР ДЛЯ ТАБОВ (вертикальный)
         Items["PagesHolder"] = Instances:Create("ScrollingFrame", {
             Parent = Items["LeftPanel"].Instance,
-            Position = UDim2.new(0, 4, 0, 48),
-            Size = UDim2.new(1, -8, 1, -56),
+            Name = "PagesHolder",
+            Position = UDim2New(0, 4, 0, 45),
+            Size = UDim2New(1, -8, 1, -52),
             BackgroundTransparency = 1,
+            BorderSizePixel = 0,
             ScrollBarThickness = 0,
-            AutomaticCanvasSize = Enum.AutomaticSize.Y
+            AutomaticCanvasSize = Enum.AutomaticSize.Y,
+            CanvasSize = UDim2New(0, 0, 0, 0)
         })
 
-        local tabsLayout = Instances:Create("UIListLayout", {
+        Instances:Create("UIListLayout", {
             Parent = Items["PagesHolder"].Instance,
-            Padding = UDim.new(0, 4),
+            Padding = UDimNew(0, 4),
             SortOrder = Enum.SortOrder.LayoutOrder
         })
 
-        -- == ПРАВАЯ ПАНЕЛЬ (здесь будут секции) ==
+        -- ПРАВАЯ ПАНЕЛЬ (контент)
         Items["RightPanel"] = Instances:Create("Frame", {
             Parent = Items["Inline"].Instance,
-            Position = UDim2.new(0, 165, 0, 13),
-            Size = UDim2.new(1, -178, 1, -26),
+            Name = "RightPanel",
+            Position = UDim2New(0, 150, 0, 8),
+            Size = UDim2New(1, -158, 1, -16),
             BorderSizePixel = 2,
             BackgroundColor3 = FromRGB(13, 13, 13)
-        })
-        Items["RightPanel"]:AddToTheme({BackgroundColor3 = "Inline", BorderColor3 = "Outline"})
+        })  Items["RightPanel"]:AddToTheme({BackgroundColor3 = "Inline", BorderColor3 = "Outline"})
 
-        -- Контейнер для контента (секций)
+        Instances:Create("UIStroke", {
+            Parent = Items["RightPanel"].Instance,
+            Color = FromRGB(68, 68, 68),
+            LineJoinMode = Enum.LineJoinMode.Miter,
+            ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+        }):AddToTheme({Color = "Border"})
+
+        -- Контейнер для контента
         Items["Content"] = Instances:Create("Frame", {
             Parent = Items["RightPanel"].Instance,
-            Position = UDim2.new(0, 10, 0, 10),
-            Size = UDim2.new(1, -20, 1, -20),
-            BackgroundTransparency = 1
-        })
-
-        local contentLayout = Instances:Create("UIListLayout", {
-            Parent = Items["Content"].Instance,
-            Padding = UDim.new(0, 12),
-            SortOrder = Enum.SortOrder.LayoutOrder
+            Name = "Content",
+            Position = UDim2New(0, 8, 0, 8),
+            Size = UDim2New(1, -16, 1, -16),
+            BorderSizePixel = 0,
+            BackgroundTransparency = 1,
+            BackgroundColor3 = FromRGB(255, 255, 255)
         })
     end
 
@@ -4270,25 +4290,21 @@ local Library do
 
     Window.Items = Items
     return setmetatable(Window, self)
-end			
+end
 
 Library.Page = function(self, Data)
     Data = Data or { }
 
     local Page = {
         Window = self,
-
         Name = Data.Name or Data.name or "Page",
         Columns = Data.Columns or Data.columns or 2,
-
         ColumnsData = { },
-
         Active = false,
-
         Items = { }
     }
 
-    -- КНОПКА ТАБА (вертикальная)
+    -- КНОПКА ТАБА
     local TabButton = Instances:Create("TextButton", {
         Parent = Page.Window.Items["PagesHolder"].Instance,
         FontFace = Library.Font,
@@ -4305,7 +4321,7 @@ Library.Page = function(self, Data)
         BackgroundColor3 = FromRGB(255, 255, 255)
     })  TabButton:AddToTheme({TextColor3 = "Text"})
 
-    -- Индикатор активного таба
+    -- ИНДИКАТОР
     local TabIndicator = Instances:Create("Frame", {
         Parent = TabButton.Instance,
         Name = "Indicator",
@@ -4316,7 +4332,7 @@ Library.Page = function(self, Data)
     })  TabIndicator:AddToTheme({BackgroundColor3 = "Accent"})
     TabIndicator.Instance.BackgroundTransparency = 1
 
-    -- Холдер контента страницы (ВАЖНО: используем правильное имя для Components.Section)
+    -- КОНТЕНТ СТРАНИЦЫ
     local PageContent = Instances:Create("Frame", {
         Parent = Page.Window.Items["Content"].Instance,
         Name = Page.Name .. "Content",
@@ -4328,7 +4344,7 @@ Library.Page = function(self, Data)
         BackgroundColor3 = FromRGB(255, 255, 255)
     })
 
-    -- Холдер для колонок
+    -- ХОЛДЕР КОЛОНОК
     local ColumnsHolder = Instances:Create("Frame", {
         Parent = PageContent.Instance,
         Name = "ColumnsHolder",
@@ -4339,7 +4355,6 @@ Library.Page = function(self, Data)
         BackgroundColor3 = FromRGB(255, 255, 255)
     })
 
-    -- UIListLayout для горизонтального расположения колонок
     Instances:Create("UIListLayout", {
         Parent = ColumnsHolder.Instance,
         FillDirection = Enum.FillDirection.Horizontal,
@@ -4348,37 +4363,36 @@ Library.Page = function(self, Data)
         SortOrder = Enum.SortOrder.LayoutOrder
     })
 
-    -- Создаём колонки
+    -- СОЗДАЁМ КОЛОНКИ (ВАЖНО: сохраняем сам Instance, а не обёртку Instances)
     for Index = 1, Page.Columns do
-        local NewColumn = Instances:Create("ScrollingFrame", {
-            Parent = ColumnsHolder.Instance,
-            ScrollBarImageColor3 = FromRGB(0, 0, 0),
-            Active = true,
-            AutomaticCanvasSize = Enum.AutomaticSize.Y,
-            ScrollBarThickness = 0,
-            Name = "Column" .. Index,
-            BackgroundTransparency = 1,
-            Size = UDim2New(1, 0, 0, 0),
-            BackgroundColor3 = FromRGB(255, 255, 255),
-            BorderColor3 = FromRGB(0, 0, 0),
-            BorderSizePixel = 0,
-            CanvasSize = UDim2New(0, 0, 0, 0)
-        })  NewColumn:AddToTheme({ScrollBarImageColor3 = "Accent"})
+        local NewColumn = Instance.new("ScrollingFrame")
+        NewColumn.Name = "Column" .. Index
+        NewColumn.Parent = ColumnsHolder.Instance
+        NewColumn.Size = UDim2New(1, 0, 0, 0)
+        NewColumn.BackgroundTransparency = 1
+        NewColumn.BorderSizePixel = 0
+        NewColumn.ScrollBarThickness = 0
+        NewColumn.Active = true
+        NewColumn.AutomaticCanvasSize = Enum.AutomaticSize.Y
+        NewColumn.CanvasSize = UDim2New(0, 0, 0, 0)
+        
+        -- Добавляем в тему
+        Library:AddToTheme(NewColumn, {ScrollBarImageColor3 = "Accent"})
 
         -- UIListLayout для вертикального расположения секций
-        Instances:Create("UIListLayout", {
-            Parent = NewColumn.Instance,
-            Padding = UDimNew(0, 12),
-            SortOrder = Enum.SortOrder.LayoutOrder
-        })
+        local listLayout = Instance.new("UIListLayout")
+        listLayout.Parent = NewColumn
+        listLayout.Padding = UDim.new(0, 12)
+        listLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
+        -- СОХРАНЯЕМ Instance (НЕ обёртку!)
         Page.ColumnsData[Index] = NewColumn
     end
 
-    -- Функция переключения страницы
+    -- ФУНКЦИЯ ПЕРЕКЛЮЧЕНИЯ
     function Page:Turn(Bool)
         Page.Active = Bool
-        PageContent.Instance.Visible = Bool
+        PageContent.Visible = Bool
 
         if Page.Active then
             TabButton:ChangeItemTheme({TextColor3 = "Accent"})
@@ -4391,7 +4405,7 @@ Library.Page = function(self, Data)
         end
     end
 
-    -- Обработчик клика по табу
+    -- КЛИК ПО ТАБУ
     TabButton:Connect("MouseButton1Down", function()
         for Index, Value in Page.Window.Pages do
             if Value ~= Page then
@@ -4401,14 +4415,13 @@ Library.Page = function(self, Data)
         Page:Turn(true)
     end)
 
-    -- Если это первая страница - делаем активной
     if #Page.Window.Pages == 0 then
         Page:Turn(true)
     end
 
     TableInsert(Page.Window.Pages, Page)
 
-    -- Метод для получения колонки по индексу (нужен для Section)
+    -- ВОЗВРАЩАЕМ Instance колонки (для Section)
     function Page:Column(ColumnIndex)
         return Page.ColumnsData[ColumnIndex]
     end
