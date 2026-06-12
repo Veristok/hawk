@@ -20,6 +20,28 @@ local RunService         = game:GetService("RunService")
 local LocalPlayer        = Players.LocalPlayer
 local Mouse              = LocalPlayer:GetMouse()
 
+local IsMobile = (UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled) or (UserInputService.TouchEnabled and #UserInputService:GetTouchActive() > 0)
+
+local Sizes = IsMobile and {
+    WindowWidth = 360, WindowHeight = 550,
+    SidebarWidth = 55, ContentOffsetX = 62,
+    FontSize = 11, RowHeight = 38,
+    ToggleWidth = 44, ToggleHeight = 24, KnobSize = 20,
+    SliderWidth = 55, SliderHeight = 18,
+    DropdownWidth = 100, DropdownHeight = 32,
+    ButtonHeight = 40, TextboxWidth = 130,
+    WatermarkWidth = 260, WatermarkOffset = -270,
+} or {
+    WindowWidth = 760, WindowHeight = 480,
+    SidebarWidth = 70, ContentOffsetX = 80,
+    FontSize = 13, RowHeight = 26,
+    ToggleWidth = 36, ToggleHeight = 18, KnobSize = 14,
+    SliderWidth = 44, SliderHeight = 14,
+    DropdownWidth = 90, DropdownHeight = 22,
+    ButtonHeight = 28, TextboxWidth = 120,
+    WatermarkWidth = 360, WatermarkOffset = -380,
+}
+
 local Theme = {
 	Accent       = Color3.fromRGB(124, 106, 182),
 	AccentDim    = Color3.fromRGB(78,  74,  94),
