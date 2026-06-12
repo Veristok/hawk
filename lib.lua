@@ -1266,7 +1266,7 @@ Library.Components = {}
 		return Picker
 	end
 
-	function Library.Components:AddPlayerList(o)
+	--[[ function Library.Components:AddPlayerList(o)
 	o = o or {}
 	local List = {
 		Callbacks = o.Callbacks or {},  
@@ -1393,7 +1393,7 @@ Library.Components = {}
 	end
 
 	return List
-end
+end ]]
 
 function Library.Components:AddLabel(text)
 		local row = makeRow(self.Content, 22)
