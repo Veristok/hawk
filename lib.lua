@@ -23,8 +23,8 @@ local Mouse              = LocalPlayer:GetMouse()
 local IsMobile = (UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled) or (UserInputService.TouchEnabled and #UserInputService:GetTouchActive() > 0)
 
 local Sizes = IsMobile and {
-    WindowWidth = 360, WindowHeight = 550,
-    SidebarWidth = 55, ContentOffsetX = 62,
+    WindowWidth = 360, WindowHeight = 360,
+    SidebarWidth = 70, ContentOffsetX = 80,
     FontSize = 11, RowHeight = 38,
     ToggleWidth = 36, ToggleHeight = 18, KnobSize = 14,
     SliderWidth = 55, SliderHeight = 18,
