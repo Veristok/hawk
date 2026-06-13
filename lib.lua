@@ -23,13 +23,13 @@ local Mouse              = LocalPlayer:GetMouse()
 local IsMobile = (UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled) or (UserInputService.TouchEnabled and #UserInputService:GetTouchActive() > 0)
 
 local Sizes = IsMobile and {
-    WindowWidth = 360, WindowHeight = 360,
+    WindowWidth = 360, WindowHeight = 230,
     SidebarWidth = 70, ContentOffsetX = 80,
     FontSize = 11, RowHeight = 38,
     ToggleWidth = 36, ToggleHeight = 18, KnobSize = 14,
     SliderWidth = 55, SliderHeight = 18,
     DropdownWidth = 90, DropdownHeight = 22,
-    ButtonHeight = 28, TextboxWidth = 120,
+    ButtonHeight = 28, TextboxWidth = 120, TextboxHeight = 22,
     WatermarkWidth = 360, WatermarkOffset = -380,
 } or {
     WindowWidth = 760, WindowHeight = 480,
@@ -38,7 +38,7 @@ local Sizes = IsMobile and {
     ToggleWidth = 36, ToggleHeight = 18, KnobSize = 14,
     SliderWidth = 44, SliderHeight = 14,
     DropdownWidth = 90, DropdownHeight = 22,
-    ButtonHeight = 28, TextboxWidth = 120,
+    ButtonHeight = 28, TextboxWidth = 120, TextboxHeight = 22,
     WatermarkWidth = 360, WatermarkOffset = -380,
 }
 
