@@ -147,20 +147,20 @@ Library.Components = {}
 		o = o or {}
 		local Toggle = { Value = o.Default or false, Callback = o.Callback or function() end }
 
-		local row = makeRow(self.Content, 26)
+		local row = makeRow(self.Content, Sizes.RowHeight)
 		local label = new("TextLabel", {
 			Size = UDim2.new(1, -60, 1, 0),
 			BackgroundTransparency = 1,
 			Text = o.Name or "Toggle",
 			TextColor3 = Theme.TextDim,
 			Font = Enum.Font.GothamBold,
-			TextSize = 13,
+			TextSize = Sizes.FontSize,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			Parent = row,
 		})
 
 		local switch = new("Frame", {
-			Size = UDim2.new(0, 36, 0, 18),
+			Size = UDim2.new(0, Sizes.ToggleWidth, 0, Sizes.ToggleHeight),
 			Position = UDim2.new(1, -36, 0.5, -9),
 			BackgroundColor3 = Theme.ToggleOff,
 			BorderSizePixel = 0,
@@ -169,7 +169,7 @@ Library.Components = {}
 		corner(switch, 999)
 
 		local knob = new("Frame", {
-			Size = UDim2.new(0, 14, 0, 14),
+			Size = UDim2.new(0, Sizes.KnobSize, 0, Sizes.KnobSize),
 			Position = UDim2.new(0, 2, 0.5, -7),
 			BackgroundColor3 = Theme.Text,
 			BorderSizePixel = 0,
@@ -222,14 +222,14 @@ Library.Components = {}
 			Decimals = o.Decimals or 0,
 		}
 
-		local row = makeRow(self.Content, 26)
+		local row = makeRow(self.Content, Sizes.RowHeight)
 		local label = new("TextLabel", {
 			Size = UDim2.new(1, -110, 1, 0),
 			BackgroundTransparency = 1,
 			Text = o.Name or "Slider",
 			TextColor3 = Theme.TextDim,
 			Font = Enum.Font.GothamBold,
-			TextSize = 13,
+			TextSize = Sizes.FontSize,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			Parent = row,
 		})
@@ -247,7 +247,7 @@ Library.Components = {}
 		})
 
 		local barFrame = new("Frame", {
-			Size = UDim2.new(0, 44, 0, 14),
+			Size = UDim2.new(0, Sizes.SliderWidth, 0, Sizes.SliderHeight),
 			Position = UDim2.new(1, -44, 0.5, -7),
 			BackgroundTransparency = 1,
 			Parent = row,
@@ -343,20 +343,20 @@ Library.Components = {}
 			Open     = false,
 		}
 
-		local row = makeRow(self.Content, 26)
+		local row = makeRow(self.Content, Sizes.RowHeight)
 		local label = new("TextLabel", {
 			Size = UDim2.new(1, -100, 1, 0),
 			BackgroundTransparency = 1,
 			Text = o.Name or "Dropdown",
 			TextColor3 = Theme.TextDim,
 			Font = Enum.Font.GothamBold,
-			TextSize = 13,
+			TextSize = Sizes.FontSize,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			Parent = row,
 		})
 
 		local box = new("TextButton", {
-			Size = UDim2.new(0, 90, 0, 22),
+			Size = UDim2.new(0, Sizes.DropdownWidth, 0, Sizes.DropdownHeight),
 			Position = UDim2.new(1, -90, 0.5, -11),
 			BackgroundColor3 = Theme.Surface3,
 			AutoButtonColor = false,
@@ -482,7 +482,7 @@ Library.Components = {}
 		o = o or {}
 		local Button = { Callback = o.Callback or function() end }
 
-		local row = makeRow(self.Content, 28)
+		local row = makeRow(self.Content, Sizes.ButtonHeight)
 		local b = new("TextButton", {
 			Size = UDim2.new(1, 0, 1, 0),
 			BackgroundColor3 = Theme.Surface3,
@@ -490,7 +490,7 @@ Library.Components = {}
 			Text = o.Name or "Button",
 			TextColor3 = Theme.Text,
 			Font = Enum.Font.GothamBold,
-			TextSize = 13,
+			TextSize = Sizes.FontSize,
 			AutoButtonColor = false,
 			Parent = row,
 		})
@@ -683,20 +683,20 @@ Library.Components = {}
 			Callback = o.Callback or function() end,
 		}
 
-		local row = makeRow(self.Content, 26)
+		local row = makeRow(self.Content, Sizes.RowHeight)
 		local label = new("TextLabel", {
 			Size = UDim2.new(1, -130, 1, 0),
 			BackgroundTransparency = 1,
 			Text = o.Name or "Input",
 			TextColor3 = Theme.TextDim,
 			Font = Enum.Font.GothamBold,
-			TextSize = 13,
+			TextSize = Sizes.FontSize,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			Parent = row,
 		})
 
 		local box = new("Frame", {
-			Size = UDim2.new(0, 120, 0, 22),
+			Size = UDim2.new(0, Sizes.TextboxWidth, 0, Sizes.TextboxHeight),
 			Position = UDim2.new(1, -120, 0.5, -11),
 			BackgroundColor3 = Theme.Surface3,
 			BorderSizePixel = 0,
@@ -1486,7 +1486,7 @@ function Library:CreateWindow(opts)
 
 	local Main = new("Frame", {
 		Name             = "Main",
-		Size             = UDim2.fromOffset(760, 480),
+		Size = UDim2.fromOffset(Sizes.WindowWidth, Sizes.WindowHeight),
 		Position         = UDim2.fromScale(0.5, 0.5),
 		AnchorPoint      = Vector2.new(0.5, 0.5),
 		BackgroundColor3 = Theme.Background,
@@ -1512,7 +1512,7 @@ function Library:CreateWindow(opts)
 
 	local Sidebar = new("Frame", {
 		Name = "Sidebar",
-		Size = UDim2.new(0, 70, 1, -20),
+		Size = UDim2.new(0, Sizes.SidebarWidth, 1, -20),
 		Position = UDim2.new(0, 10, 0, 10),
 		BackgroundColor3 = Theme.Surface,
 		BackgroundTransparency = 1,
@@ -1615,7 +1615,7 @@ function Library:CreateWindow(opts)
 	local Content = new("Frame", {
 		Name = "Content",
 		Size = UDim2.new(1, -90, 1, -20),
-		Position = UDim2.new(0, 80, 0, 10),
+		Position = UDim2.new(0, Sizes.ContentOffsetX, 0, 10),
 		BackgroundColor3 = Theme.Surface,
 		BackgroundTransparency = 0.2,
 		BorderSizePixel = 0,
@@ -1677,8 +1677,8 @@ function Library:CreateWindow(opts)
 
 	local Watermark = new("Frame", {
 		Name             = "Watermark",
-		Size             = UDim2.fromOffset(360, 36),
-		Position         = UDim2.new(1, -380, 0, 14),
+		Size = UDim2.fromOffset(Sizes.WatermarkWidth, 36),
+		Position = UDim2.new(1, Sizes.WatermarkOffset, 0, 14),
 		BackgroundColor3 = Theme.Surface,
 		BackgroundTransparency = 0.2,
 		BorderSizePixel  = 0,
@@ -1921,7 +1921,7 @@ function Library:CreateWindow(opts)
 				BackgroundTransparency = 1,
 				Parent = frame,
 			})
-			new("UIListLayout", { Padding = UDim.new(0, 10), Parent = content })
+			new("UIListLayout", { Padding = UDim.new(0, IsMobile and 8 or 12), Parent = content })
 			new("UIPadding", { PaddingBottom = UDim.new(0, 10), Parent = frame })
 
 			Section.Frame = frame
@@ -1991,5 +1991,7 @@ function Library:CreateWindow(opts)
 	function Window:Destroy() screen:Destroy() end
 	return Window
 end
+
+Library.IsMobile = IsMobile
 
 return Library
