@@ -1455,7 +1455,7 @@ function Library:CreateWindow(opts)
 	local Window = setmetatable({
 		Tabs       = {},
 		ActiveTab  = nil,
-		Title      = opts.Title   or "FENRIR",
+		Title      = opts.Title   or "Aqua",
 		Version    = opts.Version or "v0.1",
 		GameName   = opts.GameName or "GET OUT",
 		Dragging   = false,
