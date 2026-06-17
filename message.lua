@@ -1,12 +1,6 @@
 --[[
     2/22/2026
-    Library.lua
-    Purpose:
-        NH ui library
-
-    Author: @joestar._3
-    Dependencies:
-        None
+    
 ]]
 
 -- hi guys
